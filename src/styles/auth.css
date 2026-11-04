@@ -1,0 +1,222 @@
+.login-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: white;
+}
+.login-form-side {
+  display: flex;
+  flex-direction: column;
+  padding: 46px 60px 22px;
+  min-height: 100vh;
+}
+.login-form-side > .brand {
+  padding: 0;
+}
+.login-form-wrap {
+  max-width: 350px;
+  width: 100%;
+  margin: auto;
+  padding: 70px 0;
+}
+.login-symbol {
+  width: 49px;
+  height: 49px;
+  display: grid;
+  place-items: center;
+  background: #ecf8f2;
+  border: 1px solid #dcefe4;
+  color: var(--accent);
+  border-radius: 13px;
+  margin-bottom: 22px;
+}
+.login-form-wrap h1 {
+  font-size: 25px;
+  letter-spacing: -0.7px;
+}
+.login-form-wrap > p {
+  font-size: 11px;
+  color: #9ca6b2;
+  margin: 10px 0 31px;
+  line-height: 2;
+}
+.login-form-wrap .field > input {
+  font-size: 15px;
+  padding: 13px 15px;
+}
+.login-form-wrap .button {
+  min-height: 45px;
+}
+.login-form-wrap .button svg {
+  margin-right: auto;
+}
+.login-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #a1aea8;
+  font-size: 9px;
+  margin-top: 23px;
+}
+.login-footer {
+  text-align: center;
+  color: #a7b1ba;
+  font-size: 9px;
+}
+.login-story {
+  position: relative;
+  overflow: hidden;
+  background: #12382f;
+  color: #e5f4ec;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 65px 70px;
+}
+.login-story:before {
+  content: '';
+  position: absolute;
+  width: 750px;
+  height: 750px;
+  top: -460px;
+  left: -250px;
+  background: radial-gradient(circle, #3a98745e, transparent 65%);
+  pointer-events: none;
+}
+.story-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#ffffff03 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff03 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: linear-gradient(transparent, black, transparent);
+}
+.story-content {
+  position: relative;
+  max-width: 440px;
+  margin: auto;
+}
+.story-eyebrow {
+  font-size: 10px;
+  color: #9ec9b5;
+  letter-spacing: 0.2px;
+}
+.story-content h2 {
+  font-size: 42px;
+  line-height: 1.8;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin: 19px 0 14px;
+}
+.story-content > p {
+  font-size: 12px;
+  line-height: 2.4;
+  color: #81a998;
+}
+.story-portfolio {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 21px 18px;
+  background: #ffffff08;
+  border: 1px solid #ffffff10;
+  border-radius: 13px;
+  margin-top: 45px;
+}
+.story-wallet-icon {
+  width: 40px;
+  height: 40px;
+  background: #ffffff0b;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #9fd7bb;
+}
+.story-portfolio > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.story-portfolio > div > span {
+  font-size: 9px;
+  color: #89b09d;
+}
+.story-portfolio strong {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+.story-check {
+  margin-right: auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #a4d8bf1c;
+  display: grid;
+  place-items: center;
+  color: #91d5b4;
+}
+.story-chart {
+  margin-top: 18px;
+  opacity: 0.6;
+}
+.story-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.story-feature-row {
+  display: flex;
+  gap: 25px;
+  font-size: 9px;
+  color: #90b4a1;
+  margin-top: 30px;
+}
+.story-feature-row > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.story-footer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 9px;
+  color: #719e88;
+  margin-top: 50px;
+}
+.story-footer .brand-mark {
+  width: 25px;
+  height: 25px;
+  font-size: 10px;
+  background: #356d55;
+}
+.login-demo {
+  margin-top: 25px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+.login-demo p {
+  font-size: 10px;
+  color: #97a3ae;
+  margin-bottom: 10px;
+}
+.otp-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.otp-field {
+  letter-spacing: 12px;
+  text-align: center;
+  font-size: 24px !important;
+}
+.mobile-menu,
+.mobile-close,
+.sidebar-scrim {
+  display: none;
+}

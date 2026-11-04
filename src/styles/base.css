@@ -1,0 +1,137 @@
+:root {
+  --page: #f6f8fa;
+  --surface: #fff;
+  --text: #1c2738;
+  --muted: #8a94a4;
+  --subtle: #637084;
+  --line: #edf0f4;
+  --accent: #079a7c;
+  --accent-dark: #087e68;
+  --accent-soft: #e9f7f2;
+  --red: #e05b69;
+  --radius: 15px;
+  --sidebar: 236px;
+  --font: var(--font-vazir), sans-serif;
+  color-scheme: light;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--page);
+  color: var(--text);
+}
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.7;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+a,
+input,
+select {
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+}
+button,
+input,
+select,
+textarea {
+  outline: none;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #54bfa7;
+  outline-offset: 3px;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px #079a7c14;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: 24px;
+  letter-spacing: -0.6px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+h2 {
+  font-size: 14px;
+  font-weight: 700;
+}
+small {
+  font-size: 11px;
+}
+button {
+  border: 0;
+  background: none;
+  color: inherit;
+}
+svg {
+  flex-shrink: 0;
+}
+input,
+select,
+textarea {
+  color: var(--text);
+}
+select {
+  background: white;
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 100%;
+}
+bdi {
+  font-variant-numeric: tabular-nums;
+}
+.muted {
+  color: var(--muted);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+.skip-link {
+  position: fixed;
+  top: -50px;
+  right: 20px;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px;
+  z-index: 100;
+}
+.skip-link:focus {
+  top: 10px;
+}

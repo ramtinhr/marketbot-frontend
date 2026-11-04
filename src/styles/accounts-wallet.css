@@ -1,0 +1,244 @@
+.wallet-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 30px;
+  margin-bottom: 24px;
+  gap: 24px;
+  background: linear-gradient(110deg, #fff, #fafffc);
+}
+.wallet-total {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-top: 8px;
+}
+.wallet-total small {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.wallet-summary p {
+  font-size: 9px;
+  color: #a2aeb7;
+  margin-top: 7px;
+}
+.wallet-summary-actions {
+  display: flex;
+  gap: 9px;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  color: #9aa5b1;
+}
+.checkbox-label input {
+  accent-color: var(--accent);
+}
+.table-unit {
+  font-size: 9px;
+  margin-right: 5px;
+  color: #a6b0bc;
+}
+.row-actions {
+  display: flex;
+  gap: 14px;
+  font-size: 10px;
+  color: var(--accent);
+}
+.row-actions button {
+  padding: 0;
+  font-size: 10px;
+}
+.row-actions > * + * {
+  border-right: 1px solid #e3e9ee;
+  padding-right: 14px;
+}
+.destination-cell {
+  display: block;
+  max-width: 150px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 19px 23px;
+  background: #edf7f2;
+  border: 1px solid #e1efe7;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  color: #3d987c;
+}
+.info-banner strong {
+  font-size: 11px;
+  font-weight: 600;
+}
+.info-banner p {
+  font-size: 10px;
+  color: #83a295;
+  margin-top: 5px;
+}
+.bank-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.bank-card {
+  padding: 23px 22px;
+}
+.bank-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 23px;
+}
+.bank-card-top .status-badge {
+  font-size: 8px;
+}
+.delete-bank {
+  margin-right: auto;
+}
+.bank-card h2 {
+  font-size: 16px;
+}
+.bank-holder {
+  font-size: 11px;
+  color: #98a4b1;
+  margin-top: 5px;
+  display: block;
+}
+.bank-iban {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 24px 0 20px;
+}
+.bank-iban > span {
+  font-size: 9px;
+  color: #a6aeb9;
+}
+.bank-iban bdi {
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.7px;
+  color: #637486;
+}
+.bank-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  color: #a7b1ba;
+  font-size: 9px;
+}
+.add-bank-card {
+  border: 1px dashed #dce5eb;
+  border-radius: 15px;
+  min-height: 270px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #8c9eac;
+  background: #f9fbfc;
+}
+.add-bank-card > span {
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  border: 1px solid #e1e9ee;
+  display: grid;
+  place-items: center;
+  color: #92b2a6;
+  margin-bottom: 5px;
+}
+.add-bank-card strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.add-bank-card small {
+  font-size: 9px;
+  color: #acb6c0;
+}
+.add-bank-card:hover {
+  background: #f1f8f5;
+  border-color: #a6cebd;
+}
+.account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.account-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 24px 26px;
+}
+.account-profile > div {
+  flex: 1;
+}
+.account-profile h2 {
+  font-size: 15px;
+}
+.account-profile > div > span {
+  font-size: 10px;
+  color: #a1acb9;
+}
+.account-details {
+  margin: 0;
+  padding: 0 24px 18px;
+}
+.account-details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding: 17px 0;
+  font-size: 11px;
+}
+.account-details dt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #96a1af;
+}
+.account-details dd {
+  margin: 0;
+  color: #6b7a8c;
+}
+.security-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid var(--line);
+}
+.security-row > div {
+  flex: 1;
+}
+.security-row strong {
+  font-size: 11px;
+}
+.security-row p {
+  font-size: 9px;
+  color: #9faab6;
+  margin-top: 4px;
+}
+.security-explainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #f6f9f8;
+  color: #8da49a;
+  margin: 10px 24px 24px;
+  padding: 15px;
+  border-radius: 9px;
+  font-size: 10px;
+  line-height: 2;
+}
