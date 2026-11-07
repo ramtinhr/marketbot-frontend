@@ -12,10 +12,17 @@ sed -i '/^MARKETBOT_FRONTEND_IMAGE=/d' env.out
 image_id=$(docker image inspect --format '{{.Id}}' "$IMAGE")
 printf '\nMARKETBOT_FRONTEND_IMAGE=%s\n' "$image_id" >> env.out
 FRONTEND_ENV_FILE=env.out MARKETBOT_FRONTEND_IMAGE="$image_id" docker compose --env-file env.out -f docker-compose.prod.yml config -q
+echo 'Uploading release configuration…'
 ssh target "umask 077; mkdir -p '$release'"
 scp docker-compose.prod.yml "target:$release/docker-compose.yml"
 scp env.out deploy/activate.sh "target:$release/"
 ssh target "mv '$release/env.out' '$release/.env'; chmod 600 '$release/.env'"
-docker save "$IMAGE" | gzip -1 | ssh target 'gunzip | docker load'
+SECONDS=0
+# Send the inspected image ID so a concurrent tag update cannot change it.
+DEPLOY_PATH="$FRONTEND_DEPLOY_PATH" IMAGE="$image_id" bash deploy/ship-images.sh
+echo "Image preparation, transfer and loading took ${SECONDS}s"
+SECONDS=0
+echo 'Activating release and checking readiness…'
 ssh target "cd '$release'; bash activate.sh"
+echo "Release activation took ${SECONDS}s"
 printf 'Deployed image %s\n' "$image_id"
