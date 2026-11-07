@@ -13,7 +13,8 @@ concurrency:
 jobs:
   checks:
     name: Typecheck, tests and gateway
-    runs-on: ubuntu-latest
+    # Proposed code runs on GitHub; main-branch jobs use our registered runner.
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '["ubuntu-latest"]' || '["self-hosted", "linux", "x64"]') }}
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: '1'
@@ -38,7 +39,7 @@ jobs:
   image:
     name: Build and verify container
     needs: checks
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '["ubuntu-latest"]' || '["self-hosted", "linux", "x64"]') }}
     timeout-minutes: 20
     permissions:
       contents: read

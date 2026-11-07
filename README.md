@@ -149,6 +149,14 @@ The workflows follow the sibling API/dashboard/miniapp infrastructure: GHCR
 images and manual SSH deployment to the shared Linux amd64 host. Production
 never pulls from a registry; the runner transfers the tested image over SSH.
 
+Main-branch CI and manual deployments use a repository runner with the default
+`self-hosted`, `linux`, and `x64` labels. Pull-request jobs use `ubuntu-latest`.
+The runner user needs Docker Engine access, the Compose v2 plugin, Git, curl,
+Python 3, Bash, gzip, and the OpenSSH client. It must reach GitHub, GHCR, npm,
+the Node.js download service, Docker base-image registries, and the deployment
+host over SSH. Node 24 is installed by `actions/setup-node`. Use a dedicated
+runner account: deployment manages SSH configuration under that user's home.
+
 CI runs for PRs and pushes to `main`: Node 24, locked dependency installation,
 typecheck, unit tests, real gateway integration tests, deployment syntax checks,
 and a standalone Docker build with a `/login` smoke test. Only successful main
