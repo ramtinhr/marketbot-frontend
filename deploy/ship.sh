@@ -11,7 +11,7 @@ sed -i '/^MARKETBOT_FRONTEND_IMAGE=/d' env.out
 # and a mutable remote tag cannot change which image is activated.
 image_id=$(docker image inspect --format '{{.Id}}' "$IMAGE")
 printf '\nMARKETBOT_FRONTEND_IMAGE=%s\n' "$image_id" >> env.out
-MARKETBOT_FRONTEND_IMAGE="$image_id" docker compose --env-file env.out -f docker-compose.prod.yml config --no-env-resolution -q
+FRONTEND_ENV_FILE=env.out MARKETBOT_FRONTEND_IMAGE="$image_id" docker compose --env-file env.out -f docker-compose.prod.yml config -q
 ssh target "umask 077; mkdir -p '$release'"
 scp docker-compose.prod.yml "target:$release/docker-compose.yml"
 scp env.out deploy/activate.sh "target:$release/"

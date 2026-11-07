@@ -3,7 +3,7 @@ services:
   frontend:
     image: ${MARKETBOT_FRONTEND_IMAGE:?Set MARKETBOT_FRONTEND_IMAGE}
     pull_policy: never
-    env_file: .env
+    env_file: ${FRONTEND_ENV_FILE:-.env}
     environment:
       NODE_ENV: production
       HOSTNAME: 127.0.0.1
