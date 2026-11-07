@@ -11,9 +11,10 @@ import {
   useAuction,
   useResource,
 } from '@/lib/use-data';
+import { parseDecimal, decimalUnits, formatAmountInput } from '@/lib/numbers';
 import { api, errorText } from '@/lib/api';
 import { useApp } from '@/providers/app-provider';
-import { assetName, number, digits } from '@/lib/format';
+import { assetName, number } from '@/lib/format';
 import {
   AssetLabel,
   Change,
@@ -54,14 +55,16 @@ export function Trading({ symbol }: { symbol: string }) {
   const summary = market.data?.summary;
   const depth = type === 'auction' ? auction.data?.book : market.data?.depth;
   const reference = side === 'buy' ? depth?.asks[0]?.price : depth?.bids[0]?.price;
+  const quantityValue = parseDecimal(quantity, 8);
+  const priceValue = parseDecimal(price, 8);
   const effectivePrice =
     type === 'market'
       ? Number(reference ?? summary?.close ?? 0)
-      : Number(price || reference || summary?.close || 0);
+      : Number(priceValue ?? (price ? 0 : reference || summary?.close || 0));
   const available = Number(
     wallet.data?.balances.find((b) => b.asset === (side === 'buy' ? 'IRT' : base))?.available ?? 0,
   );
-  const estimate = Number(quantity) * effectivePrice;
+  const estimate = Number(quantityValue) * effectivePrice;
   const points =
     market.data?.trades
       .slice()
@@ -76,20 +79,39 @@ export function Trading({ symbol }: { symbol: string }) {
   const prepare = (event: React.FormEvent) => {
     event.preventDefault();
     if (
-      !Number.isFinite(Number(quantity)) ||
-      Number(quantity) <= 0 ||
+      !quantityValue ||
+      (type !== 'market' && !!price && !priceValue) ||
       !Number.isFinite(effectivePrice) ||
       effectivePrice <= 0
     ) {
-      setFormError('مقدار و قیمت معتبر وارد کنید.');
+      setFormError(
+        !quantityValue
+          ? 'مقدار باید مثبت و با حداکثر ۸ رقم اعشار باشد.'
+          : 'قیمت باید مثبت و با حداکثر ۸ رقم اعشار باشد.',
+      );
       return;
     }
-    if ((side === 'buy' ? estimate : Number(quantity)) > available) {
+    const quantityUnits = decimalUnits(quantityValue!, 8)!;
+    const priceUnits = decimalUnits(
+      type === 'market'
+        ? String(reference ?? summary?.close ?? 0).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '')
+        : (priceValue ?? String(effectivePrice)),
+      8,
+    );
+    const balanceString =
+      wallet.data?.balances.find((b) => b.asset === (side === 'buy' ? 'IRT' : base))?.available ??
+      '0';
+    const balanceUnits = decimalUnits(balanceString, 18) ?? 0n;
+    if (
+      !priceUnits ||
+      (side === 'buy' ? quantityUnits * priceUnits * 100n : quantityUnits * 10000000000n) >
+        balanceUnits
+    ) {
       setFormError('موجودی کافی برای این سفارش ندارید.');
       return;
     }
     setFormError('');
-    if (type !== 'market') setPrice(String(effectivePrice));
+    if (type !== 'market') setPrice(formatAmountInput(priceValue ?? String(effectivePrice)));
     setReview(true);
   };
   return (
@@ -166,7 +188,7 @@ export function Trading({ symbol }: { symbol: string }) {
                   <button
                     key={`ask-${i}`}
                     onClick={() => {
-                      setPrice(l.price);
+                      setPrice(formatAmountInput(l.price));
                       setType(type === 'auction' ? 'auction' : 'limit');
                     }}
                     style={{
@@ -189,7 +211,7 @@ export function Trading({ symbol }: { symbol: string }) {
                 <button
                   key={`bid-${i}`}
                   onClick={() => {
-                    setPrice(l.price);
+                    setPrice(formatAmountInput(l.price));
                     setType(type === 'auction' ? 'auction' : 'limit');
                   }}
                   style={{
@@ -223,7 +245,7 @@ export function Trading({ symbol }: { symbol: string }) {
               </button>
             ))}
           </div>
-          <form onSubmit={prepare}>
+          <form noValidate onSubmit={prepare}>
             <div className="available-row">
               <span>موجودی قابل استفاده</span>
               <strong>
@@ -240,7 +262,10 @@ export function Trading({ symbol }: { symbol: string }) {
                     aria-label="قیمت واحد"
                     value={price}
                     placeholder={String(reference ?? summary?.close ?? '')}
-                    onChange={(e) => setPrice(digits(e.target.value))}
+                    onChange={(e) => {
+                      setPrice(formatAmountInput(e.target.value));
+                      setFormError('');
+                    }}
                   />
                   <span>تومان</span>
                 </div>
@@ -259,7 +284,10 @@ export function Trading({ symbol }: { symbol: string }) {
                   aria-label="مقدار سفارش"
                   value={quantity}
                   placeholder="0.00"
-                  onChange={(e) => setQuantity(digits(e.target.value))}
+                  onChange={(e) => {
+                    setQuantity(formatAmountInput(e.target.value));
+                    setFormError('');
+                  }}
                 />
                 <span>{base}</span>
               </div>
@@ -269,19 +297,13 @@ export function Trading({ symbol }: { symbol: string }) {
                 <button
                   key={p}
                   type="button"
-                  onClick={() =>
-                    setQuantity(
-                      String(
-                        Number(
-                          (
-                            (available * p) /
-                            100 /
-                            (side === 'buy' ? effectivePrice || 1 : 1)
-                          ).toFixed(8),
-                        ),
-                      ),
-                    )
-                  }
+                  onClick={() => {
+                    const value =
+                      (available * p) / 100 / (side === 'buy' ? effectivePrice || 1 : 1);
+                    const floored = Math.floor(value * 1e8) / 1e8;
+                    setQuantity(formatAmountInput(floored.toFixed(8).replace(/\.?0+$/, '')));
+                    setFormError('');
+                  }}
                 >
                   {number(p)}٪
                 </button>
@@ -367,7 +389,7 @@ export function Trading({ symbol }: { symbol: string }) {
           <div>
             <span>مقدار</span>
             <strong>
-              {number(quantity, 8)} {base}
+              {number(quantityValue ?? '0', 8)} {base}
             </strong>
           </div>
           <div>
@@ -395,8 +417,8 @@ export function Trading({ symbol }: { symbol: string }) {
                     id: `demo-${Date.now()}`,
                     symbol,
                     side,
-                    price: String(effectivePrice),
-                    quantity,
+                    price: priceValue ?? String(effectivePrice),
+                    quantity: quantityValue!,
                     filled_quantity: '0',
                     status: 'open',
                     created_at: new Date().toISOString(),
@@ -412,8 +434,8 @@ export function Trading({ symbol }: { symbol: string }) {
                       symbol,
                       side,
                       ...(type === 'auction' ? { description } : { type }),
-                      ...(type !== 'market' ? { price: String(effectivePrice) } : {}),
-                      quantity,
+                      ...(type !== 'market' ? { price: priceValue ?? String(effectivePrice) } : {}),
+                      quantity: quantityValue!,
                     },
                   });
                 if (!demo) await client.invalidateQueries();

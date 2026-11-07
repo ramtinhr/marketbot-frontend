@@ -57,16 +57,18 @@
 .dialog-actions .button {
   min-width: 96px;
 }
-.inline-error {
+.inline-error,
+.form-error {
   font-size: 10px;
-  color: #cf6170;
+  color: var(--error-text);
   background: #fff1f3;
   padding: 10px 12px;
   border-radius: 7px;
   line-height: 1.9;
 }
-.inline-error .text-link {
-  color: #cf6170;
+.inline-error .text-link,
+.form-error .text-link {
+  color: var(--error-text);
 }
 .review-list {
   display: flex;
@@ -137,8 +139,11 @@
   color: #728175;
 }
 .notification.error {
-  color: #dc7381;
+  color: var(--error-text);
   border-color: #f1dfe2;
+}
+.notification.error > span {
+  color: inherit;
 }
 .state-block {
   display: flex;
@@ -165,7 +170,7 @@
   gap: 16px;
 }
 .error-state p {
-  color: #c48790;
+  color: var(--error-text);
 }
 .session-loading {
   height: 100vh;

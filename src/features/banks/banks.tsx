@@ -27,6 +27,12 @@ export function Banks() {
       setError('شمارهٔ شبا معتبر نیست. ۲۴ رقم بعد از IR را بررسی کنید.');
       return;
     }
+    if (!holder.trim() || holder.trim().length > 120 || !label.trim() || label.trim().length > 80) {
+      setError(
+        'نام صاحب حساب الزامی و حداکثر ۱۲۰ نویسه است؛ عنوان حساب الزامی و حداکثر ۸۰ نویسه است.',
+      );
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -94,7 +100,7 @@ export function Banks() {
         title="افزودن حساب بانکی"
         description="برای ذخیرهٔ مقصد برداشت، اطلاعات حساب را وارد کنید."
       >
-        <form className="form-stack" onSubmit={save}>
+        <form noValidate className="form-stack" onSubmit={save}>
           <Field label="عنوان حساب">
             <input
               required

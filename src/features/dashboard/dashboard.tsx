@@ -114,7 +114,7 @@ export function Dashboard() {
             </div>
           </div>
           {wallet.error && (
-            <p className="inline-error">
+            <p className="inline-error" role="alert">
               دریافت موجودی انجام نشد.{' '}
               <button className="text-link" onClick={() => wallet.refetch()}>
                 تلاش دوباره

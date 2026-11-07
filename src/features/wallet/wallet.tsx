@@ -94,6 +94,7 @@ export function WalletPage() {
           <p>ارزش تقریبی بر اساس قیمت فعلی بازار</p>
         </div>
         <div className="wallet-summary-actions">
+          <Link href="/p2p" className="button secondary">همتا به همتا</Link>
           <button className="button primary" onClick={() => start('deposit')}>
             <Plus size={17} />
             افزایش موجودی

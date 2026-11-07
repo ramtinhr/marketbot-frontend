@@ -28,6 +28,7 @@ const links = [
   { href: '/markets', label: 'بازارها', icon: ChartNoAxesCombined },
   { href: '/trade/USDT_IRT', label: 'معامله', icon: ArrowLeftRight },
   { href: '/wallet', label: 'کیف پول', icon: Wallet },
+  { href: '/p2p', label: 'همتا به همتا', icon: ArrowLeftRight },
   { href: '/orders', label: 'سفارش‌ها', icon: ClipboardList },
 ];
 const accountLinks = [

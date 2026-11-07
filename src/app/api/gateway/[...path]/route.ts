@@ -36,7 +36,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
         ...(requestBody ? { 'Content-Type': 'application/json' } : {}),
         ...(clientIp && isIP(clientIp) ? { 'X-Forwarded-For': clientIp } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(path.startsWith('crypto/') && request.headers.get('idempotency-key')
+        ...((path.startsWith('crypto/') || path.startsWith('p2p/')) && request.headers.get('idempotency-key')
           ? { 'Idempotency-Key': request.headers.get('idempotency-key')! }
           : {}),
       },

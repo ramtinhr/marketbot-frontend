@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
+import { parseDecimal, decimalUnits, formatAmountInput } from '@/lib/numbers';
 import { api, errorText } from '@/lib/api';
 import { useBanks, useResource, useWallet } from '@/lib/use-data';
 import { useApp } from '@/providers/app-provider';
@@ -81,9 +82,14 @@ function FiatWalletActions({
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
-    const value = Number(amount);
-    if (!Number.isFinite(value) || value <= 0) {
-      setError('مقدار معتبر وارد کنید.');
+    const canonical = parseDecimal(amount, asset === 'IRT' || action === 'deposit' ? 0 : 8);
+    const value = Number(canonical);
+    if (!canonical) {
+      setError(
+        asset === 'IRT' || action === 'deposit'
+          ? 'مبلغ تومان باید عدد صحیح و مثبت باشد.'
+          : 'مقدار مثبت با حداکثر ۸ رقم اعشار وارد کنید.',
+      );
       return;
     }
     if (action === 'deposit') {
@@ -104,7 +110,7 @@ function FiatWalletActions({
         }
         const result = await api<{ url: string }>('/wallet/charge', {
           method: 'POST',
-          body: { amount: value },
+          body: { amount: canonical },
         });
         const url = new URL(result.url, location.origin);
         if (!['https:', 'http:'].includes(url.protocol)) throw new Error('invalid gateway');
@@ -120,7 +126,7 @@ function FiatWalletActions({
       setError('مبلغ تومان باید عدد صحیح باشد.');
       return;
     }
-    if (value > Number(balance)) {
+    if (decimalUnits(canonical)! > (decimalUnits(String(balance)) ?? 0n)) {
       setError('مقدار از موجودی قابل استفاده بیشتر است.');
       return;
     }
@@ -137,15 +143,19 @@ function FiatWalletActions({
       else await sendCode();
       return;
     }
+    if (!/^\d{6}$/.test(digits(code))) {
+      setError('کد تأیید باید ۶ رقم باشد.');
+      return;
+    }
     setBusy(true);
     try {
       await api('/wallet/withdrawals', {
         method: 'POST',
         body: {
           asset,
-          amount,
+          amount: canonical,
           network: asset === 'IRT' ? null : network || networks[0],
-          code,
+          code: digits(code),
           ...(asset === 'IRT' && bank !== 'other'
             ? { recipient_type: 'saved', bank_account_id: bank }
             : {
@@ -177,7 +187,7 @@ function FiatWalletActions({
           : 'برداشت پس از تأیید پیامکی ثبت می‌شود و برای بررسی در انتظار می‌ماند.'
       }
     >
-      <form className="form-stack" onSubmit={submit}>
+      <form noValidate className="form-stack" onSubmit={submit}>
         {step === 1 ? (
           <>
             {
@@ -215,7 +225,7 @@ function FiatWalletActions({
                 dir="ltr"
                 inputMode="decimal"
                 value={amount}
-                onChange={(e) => setAmount(digits(e.target.value))}
+                onChange={(e) => setAmount(formatAmountInput(e.target.value))}
               />
             </Field>
             {action === 'withdraw' &&
@@ -293,7 +303,11 @@ function FiatWalletActions({
             <div className="review-list">
               <div>
                 <span>مقدار برداشت</span>
-                <Money value={amount} unit={asset === 'IRT' ? 'تومان' : asset} decimals={8} />
+                <Money
+                  value={parseDecimal(amount, 8) ?? '0'}
+                  unit={asset === 'IRT' ? 'تومان' : asset}
+                  decimals={8}
+                />
               </div>
             </div>
             <div className="review-list">

@@ -219,3 +219,13 @@ Retain previous release directories and Docker images for automatic rollback;
 do not run image pruning during deployment. Runtime secrets remain in mode-600
 files under mode-700 release directories. No live deployment is triggered by
 adding these workflows.
+
+## Rial peer payments
+
+`/p2p` (also linked from Wallet) supports funded receive requests, exclusive
+2-minute payment selections across one or several requests, separate bank receipts,
+receiver confirmation, disputes and 30-minute escalation to the existing admin
+queue. This market shares the Mini App's orders, balances and reservation lock.
+Run the API's `006_customer_p2p` migration with `npm run migrate` before deploying
+the updated frontend. Customer API routes and operational details are documented
+in `marketbot-api/docs/customer-p2p.md`. Demo mode stays read-only.

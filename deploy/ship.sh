@@ -19,7 +19,14 @@ scp env.out deploy/activate.sh "target:$release/"
 ssh target "mv '$release/env.out' '$release/.env'; chmod 600 '$release/.env'"
 SECONDS=0
 # Send the inspected image ID so a concurrent tag update cannot change it.
-DEPLOY_PATH="$FRONTEND_DEPLOY_PATH" IMAGE="$image_id" bash deploy/ship-images.sh
+if [ -n "${LOCAL_REGISTRY:-}" ]; then
+  # Pin the runner's resolved digest so a moving tag cannot change the release.
+  digest_ref=$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE")
+  [[ "$digest_ref" =~ ^[a-zA-Z0-9][a-zA-Z0-9._/:@-]+$ ]] || exit 1
+  ssh target "docker pull '$digest_ref' && docker image inspect '$image_id' >/dev/null"
+else
+  DEPLOY_PATH="$FRONTEND_DEPLOY_PATH" IMAGE="$image_id" bash deploy/ship-images.sh
+fi
 echo "Image preparation, transfer and loading took ${SECONDS}s"
 SECONDS=0
 echo 'Activating release and checking readiness…'

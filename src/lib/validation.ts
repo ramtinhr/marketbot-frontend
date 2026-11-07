@@ -1,5 +1,6 @@
+import { asciiDigits } from './numbers.ts';
 export function normalizeIban(value: string): string {
-  return value.replace(/\s/g, '').toUpperCase();
+  return asciiDigits(value).replace(/\s/g, '').toUpperCase();
 }
 export function validIban(value: string): boolean {
   const iban = normalizeIban(value);

@@ -150,6 +150,17 @@ try {
     ).status,
     404,
   );
+  const p2p = await fetch(origin + '/api/gateway/p2p/orders', {
+    method: 'POST',
+    headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json', 'Idempotency-Key': 'p2p-test-retry-key' },
+    body: JSON.stringify({ amount: '1000000', description: 'disposable gateway test' }),
+  });
+  assert.equal(p2p.status, 200);
+  assert.equal(receivedKey, 'p2p-test-retry-key');
+  assert.equal(receivedAuthorization, `Bearer ${token}`);
+  assert.equal((await fetch(origin + '/api/gateway/p2p/payments/one/review', {
+    method: 'POST', headers: { Origin: origin, Cookie: cookieHeader },
+  })).status, 404);
   const logout = await fetch(origin + '/api/gateway/auth/logout', {
     method: 'POST',
     headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json' },

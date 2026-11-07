@@ -38,6 +38,10 @@ export function Login() {
   }, [resendAt]);
   const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
   const send = async () => {
+    if (!/^09\d{9}$/.test(digits(phone))) {
+      setError('شمارهٔ موبایل باید ۱۱ رقم و با ۰۹ شروع شود.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -57,7 +61,8 @@ export function Login() {
   };
   const verify = async (value: string) => {
     const completedCode = digits(value);
-    if (!challenge || !/^[0-9]{6}$/.test(completedCode) || busy || verifying.current) return;
+    if (!challenge || busy || verifying.current) return;
+    if (!/^[0-9]{6}$/.test(completedCode)) { setError('کد تأیید باید ۶ رقم باشد.'); return; }
     verifying.current = true;
     setBusy(true);
     setError('');
@@ -101,7 +106,7 @@ export function Login() {
               ? `کد ۶ رقمی ارسال‌شده به ${phone} را وارد کنید.`
               : 'با شمارهٔ موبایل خود وارد فضای معاملات شوید.'}
           </p>
-          <form className="form-stack" onSubmit={submit}>
+          <form noValidate className="form-stack" onSubmit={submit}>
             {challenge ? (
               <>
                 <Field label="کد تأیید">

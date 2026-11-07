@@ -1,3 +1,4 @@
+import { decimalUnits } from './numbers.ts';
 import { api, ApiError, errorText } from './api.ts';
 
 export interface CryptoAsset {
@@ -57,10 +58,7 @@ export const networkNames: Record<string, string> = {
   ADA: 'Cardano',
 };
 export function exactUnits(value: string, decimals: number): bigint | null {
-  if (!/^\d{1,18}(\.\d{1,18})?$/.test(value)) return null;
-  const [whole, fraction = ''] = value.split('.');
-  if (fraction.length > decimals) return null;
-  return BigInt(whole + fraction.padEnd(decimals, '0'));
+  return decimalUnits(value, decimals);
 }
 export function sumDecimals(left: string, right: string): string {
   const a = exactUnits(left, 18),

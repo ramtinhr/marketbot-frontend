@@ -2,6 +2,7 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Copy, CheckCircle2 } from 'lucide-react';
+import { parseDecimal, formatAmountInput } from '@/lib/numbers';
 import { api } from '@/lib/api';
 import {
   depositDisabledText,
@@ -148,7 +149,7 @@ function CryptoForm({
     if (!enabled || !session.data?.user.id) return;
     const userId = String(session.data.user.id);
     if (action === 'deposit') {
-      if (!address || !tx.trim()) return;
+      if (!address || !tx.trim()) { setError('ابتدا آدرس واریز را دریافت و سپس شناسهٔ تراکنش را وارد کنید.'); return; }
       await perform(async () => {
         const result = await fundingRequest<{ deposit: CryptoDeposit }>(
           userId,
@@ -162,7 +163,8 @@ function CryptoForm({
       });
       return;
     }
-    const units = exactUnits(amount, asset.decimals);
+    const canonical = parseDecimal(amount, asset.decimals, 18);
+    const units = canonical ? exactUnits(canonical, asset.decimals) : null;
     const available = exactUnits(balance, 18);
     if (units === null || units <= 0n) {
       setError(`مقدار مثبت با حداکثر ${asset.decimals} رقم اعشار وارد کنید.`);
@@ -189,7 +191,7 @@ function CryptoForm({
       await fundingRequest<{ withdrawal: CryptoWithdrawal }>(userId, '/crypto/withdrawals', {
         asset: asset.asset,
         network: asset.network,
-        amount,
+        amount: canonical,
         destination: destination.trim(),
         ...(tag ? { destination_tag: tag } : {}),
       });
@@ -225,7 +227,7 @@ function CryptoForm({
       </div>
     );
   return (
-    <form className="form-stack" onSubmit={submit}>
+    <form noValidate className="form-stack" onSubmit={submit}>
       {!enabled && (
         <p className="form-note" role="status">
           {demo
@@ -349,7 +351,7 @@ function CryptoForm({
                   inputMode="decimal"
                   dir="ltr"
                   value={amount}
-                  onChange={(e) => setAmount(digits(e.target.value))}
+                  onChange={(e) => setAmount(formatAmountInput(e.target.value))}
                 />
               </Field>
               <Field label="آدرس مقصد" hint="شبکهٔ آدرس مقصد باید با شبکهٔ انتخاب‌شده یکسان باشد.">
