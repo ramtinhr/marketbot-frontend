@@ -8,15 +8,21 @@ import { useApp } from '@/providers/app-provider';
 import { assetName, digits, number } from '@/lib/format';
 import { validIban } from '@/lib/validation';
 import { Field, Modal, Money } from '@/components/ui';
+import { CryptoWalletActions } from './crypto-actions';
+import { useCryptoAssets } from '@/lib/use-data';
 import type { Withdrawal } from '@/lib/types';
-export function WalletActions({
+function FiatWalletActions({
   action,
   onClose,
   initialAsset = 'IRT',
+  onAssetChange,
+  assetOptions,
 }: {
   action: 'deposit' | 'withdraw' | null;
   onClose: () => void;
   initialAsset?: string;
+  onAssetChange: (asset: string) => void;
+  assetOptions: string[];
 }) {
   const { demo, notify } = useApp();
   const wallet = useWallet();
@@ -174,23 +180,24 @@ export function WalletActions({
       <form className="form-stack" onSubmit={submit}>
         {step === 1 ? (
           <>
-            {action === 'withdraw' && (
+            {
               <Field label="دارایی">
                 <select
                   value={asset}
                   onChange={(e) => {
+                    onAssetChange(e.target.value);
                     setAsset(e.target.value);
                     setNetwork('');
                   }}
                 >
-                  {wallet.data?.assets.map((a) => (
+                  {assetOptions.map((a) => (
                     <option key={a} value={a}>
                       {assetName(a)} · {a}
                     </option>
                   ))}
                 </select>
               </Field>
-            )}
+            }
             <Field
               label={
                 action === 'deposit'
@@ -346,9 +353,6 @@ export function WalletActions({
             </button>
           </>
         )}
-        {action === 'deposit' && (
-          <p className="form-note">واریز رمزارز در حال حاضر در دسترس نیست.</p>
-        )}
         {error && (
           <p className="inline-error" role="alert">
             {error}
@@ -374,5 +378,46 @@ export function WalletActions({
         </div>
       </form>
     </Modal>
+  );
+}
+
+export function WalletActions({
+  action,
+  onClose,
+  initialAsset = 'IRT',
+}: {
+  action: 'deposit' | 'withdraw' | null;
+  onClose: () => void;
+  initialAsset?: string;
+}) {
+  const [asset, setAsset] = useState(initialAsset);
+  const crypto = useCryptoAssets();
+  const options = [
+    ...new Set(['IRT', initialAsset, ...(crypto.data?.assets.map((a) => a.asset) ?? [])]),
+  ];
+  if (!action) return null;
+  if (asset === 'IRT')
+    return (
+      <FiatWalletActions
+        action={action}
+        onClose={onClose}
+        initialAsset="IRT"
+        onAssetChange={setAsset}
+        assetOptions={options}
+      />
+    );
+  return (
+    <CryptoWalletActions
+      key={asset}
+      action={action}
+      asset={asset}
+      assets={crypto.data?.assets ?? []}
+      options={options}
+      onAssetChange={setAsset}
+      onClose={onClose}
+      loading={crypto.isPending}
+      error={crypto.error}
+      retry={() => void crypto.refetch()}
+    />
   );
 }

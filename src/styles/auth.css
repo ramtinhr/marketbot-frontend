@@ -210,10 +210,58 @@
   align-items: center;
   justify-content: space-between;
 }
-.otp-field {
-  letter-spacing: 12px;
-  text-align: center;
-  font-size: 24px !important;
+.otp-input {
+  width: 100%;
+  direction: ltr;
+}
+.otp-input:has(input:disabled) {
+  opacity: 0.6;
+}
+.otp-slots {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(6px, 2vw, 12px);
+  width: 100%;
+}
+.otp-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  border: 1px solid #e3e9ef;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.otp-slot.invalid {
+  border-color: var(--red);
+}
+.otp-slot.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.otp-caret {
+  position: absolute;
+  width: 2px;
+  height: 26px;
+  background: var(--accent);
+  animation: otp-blink 1s step-end infinite;
+}
+@keyframes otp-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .otp-caret {
+    animation: none;
+  }
 }
 .mobile-menu,
 .mobile-close,

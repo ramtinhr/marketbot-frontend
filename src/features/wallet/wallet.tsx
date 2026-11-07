@@ -10,6 +10,9 @@ import { AssetLabel, Money, PageHeading, Panel, State, StatusBadge, Modal } from
 import { api, errorText } from '@/lib/api';
 import { useApp } from '@/providers/app-provider';
 import type { Withdrawal } from '@/lib/types';
+import { CryptoDepositHistory, CryptoWithdrawalHistory } from './crypto-history';
+import { useCryptoAssets } from '@/lib/use-data';
+import { sumDecimals } from '@/lib/crypto-funding';
 import { WalletActions } from './wallet-actions';
 export function WalletPage() {
   const params = useSearchParams();
@@ -35,8 +38,18 @@ export function WalletPage() {
     networks: { USDT: ['TRC20', 'ERC20'] },
     withdrawals: [],
   });
+  const cryptoAssets = useCryptoAssets();
+  const allBalances = [
+    ...(wallet.data?.balances ?? []),
+    ...(cryptoAssets.data?.assets ?? [])
+      .map((a) => a.asset)
+      .filter(
+        (a, i, rows) => rows.indexOf(a) === i && !wallet.data?.balances.some((b) => b.asset === a),
+      )
+      .map((asset) => ({ asset, available: '0', frozen: '0', locked: '0' })),
+  ];
   const balances =
-    wallet.data?.balances.filter(
+    allBalances.filter(
       (b) =>
         (!hideZero || Number(b.available) + Number(b.frozen) + Number(b.locked) > 0) &&
         b.asset.toLowerCase().includes(search.toLowerCase()),
@@ -93,11 +106,13 @@ export function WalletPage() {
       </Panel>
       <Panel>
         <div className="table-toolbar">
-          <div className="tabs">
+          <div className="tabs wallet-tabs">
             {[
               ['assets', 'دارایی‌ها'],
               ['history', 'تاریخچهٔ کیف پول'],
-              ['withdrawals', 'درخواست‌های برداشت'],
+              ['deposits', 'واریز رمزارز'],
+              ['crypto-withdrawals', 'برداشت رمزارز'],
+              ['withdrawals', 'برداشت تومان'],
             ].map(([key, label]) => (
               <button key={key} className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
                 {label}
@@ -152,14 +167,20 @@ export function WalletPage() {
                       </td>
                       <td>
                         <bdi>
-                          {show ? number(b.available, b.asset === 'IRT' ? 0 : 8) : '••••••'}
+                          {show
+                            ? b.asset === 'IRT'
+                              ? number(b.available)
+                              : b.available
+                            : '••••••'}
                         </bdi>
                         <small className="table-unit">{b.asset}</small>
                       </td>
                       <td>
                         <bdi>
                           {show
-                            ? number(Number(b.frozen) + Number(b.locked), b.asset === 'IRT' ? 0 : 8)
+                            ? b.asset === 'IRT'
+                              ? number(sumDecimals(b.frozen, b.locked))
+                              : sumDecimals(b.frozen, b.locked)
                             : '••••••'}
                         </bdi>
                       </td>
@@ -177,11 +198,8 @@ export function WalletPage() {
                       </td>
                       <td>
                         <div className="row-actions">
-                          {b.asset === 'IRT' ? (
-                            <button onClick={() => start('deposit')}>واریز</button>
-                          ) : (
-                            <Link href={`/trade/${b.asset}_IRT`}>معامله</Link>
-                          )}
+                          <button onClick={() => start('deposit', b.asset)}>واریز</button>
+                          {b.asset !== 'IRT' && <Link href={`/trade/${b.asset}_IRT`}>معامله</Link>}
                           <button onClick={() => start('withdraw', b.asset)}>برداشت</button>
                         </div>
                       </td>
@@ -192,6 +210,8 @@ export function WalletPage() {
             </div>
           </State>
         )}
+        {tab === 'deposits' && <CryptoDepositHistory />}
+        {tab === 'crypto-withdrawals' && <CryptoWithdrawalHistory />}
         {tab === 'history' && (
           <State
             loading={entries.isPending}
@@ -217,11 +237,13 @@ export function WalletPage() {
                       </td>
                       <td>{entryLabel(e.kind)}</td>
                       <td>
-                        <Money
-                          value={e.amount}
-                          unit={e.asset === 'IRT' ? 'تومان' : e.asset}
-                          decimals={e.asset === 'IRT' ? 0 : 8}
-                        />
+                        {e.asset === 'IRT' ? (
+                          <Money value={e.amount} />
+                        ) : (
+                          <bdi>
+                            {e.amount} {e.asset}
+                          </bdi>
+                        )}
                       </td>
                       <td>{date(e.created_at)}</td>
                     </tr>

@@ -1,14 +1,15 @@
 'use client';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Landmark, Trash2, CreditCard, ShieldCheck } from 'lucide-react';
+import { Plus, ShieldCheck } from 'lucide-react';
 import { useBanks } from '@/lib/use-data';
 import { api, errorText } from '@/lib/api';
 import { normalizeIban, validIban } from '@/lib/validation';
 import { digits } from '@/lib/format';
 import { useApp } from '@/providers/app-provider';
-import { Field, Modal, PageHeading, Panel, State, StatusBadge } from '@/components/ui';
+import { Field, Modal, PageHeading, State } from '@/components/ui';
 import type { BankAccount } from '@/lib/types';
+import { BankCard } from './bank-card';
 export function Banks() {
   const banks = useBanks();
   const client = useQueryClient();
@@ -76,31 +77,7 @@ export function Banks() {
       >
         <div className="bank-grid">
           {banks.data?.accounts.map((b) => (
-            <Panel key={b.id} className="bank-card">
-              <div className="bank-card-top">
-                <span className="metric-icon teal">
-                  <Landmark size={23} />
-                </span>
-                <StatusBadge>حساب ذخیره‌شده</StatusBadge>
-                <button
-                  className="icon-button delete-bank"
-                  aria-label={`حذف ${b.label}`}
-                  onClick={() => setRemove(b)}
-                >
-                  <Trash2 size={17} />
-                </button>
-              </div>
-              <h2>{b.label}</h2>
-              <span className="bank-holder">{b.holder_name}</span>
-              <div className="bank-iban">
-                <span>شمارهٔ شبا</span>
-                <bdi>{b.iban}</bdi>
-              </div>
-              <div className="bank-card-footer">
-                <CreditCard size={15} />
-                <span>قابل استفاده برای درخواست برداشت تومان</span>
-              </div>
-            </Panel>
+            <BankCard key={b.id} account={b} onRemove={() => setRemove(b)} />
           ))}
           <button className="add-bank-card" onClick={() => setAdd(true)}>
             <span>

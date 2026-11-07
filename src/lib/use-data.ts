@@ -54,3 +54,45 @@ export function useSession() {
     refetchInterval: demo ? false : 60000,
   });
 }
+
+export const useCryptoAssets = () =>
+  useResource<{ assets: import('./crypto-funding').CryptoAsset[] }>(
+    'crypto-assets',
+    '/crypto/assets',
+    {
+      assets: [
+        ['USDT', 'BEP20', 18],
+        ['USDT', 'TRC20', 6],
+        ['BTC', 'BTC', 8],
+        ['TRX', 'TRC20', 6],
+        ['ETH', 'ERC20', 18],
+        ['BNB', 'BEP20', 18],
+        ['DOGE', 'DOGE', 8],
+        ['SOL', 'SOL', 9],
+        ['XRP', 'XRP', 6],
+        ['ADA', 'ADA', 6],
+        ['USDC', 'ERC20', 6],
+        ['SHIB', 'ERC20', 18],
+      ].map(([asset, network, decimals]) => ({
+        asset: String(asset),
+        network: String(network),
+        decimals: Number(decimals),
+        deposit_enabled: false,
+        withdrawal_enabled: false,
+        withdrawal_fee: '0',
+      })),
+    },
+    60000,
+  );
+export const useCryptoDeposits = () =>
+  useResource<{ deposits: import('./crypto-funding').CryptoDeposit[] }>(
+    'crypto-deposits',
+    '/crypto/deposits',
+    { deposits: [] },
+  );
+export const useCryptoWithdrawals = () =>
+  useResource<{ withdrawals: import('./crypto-funding').CryptoWithdrawal[] }>(
+    'crypto-withdrawals',
+    '/crypto/withdrawals',
+    { withdrawals: [] },
+  );

@@ -142,3 +142,65 @@ configuration; this work has not been deployed to production.
 # marketbot-frontend
 # marketbot-frontend
 # marketbot-frontend
+
+## GitHub CI/CD
+
+The workflows follow the sibling API/dashboard/miniapp infrastructure: GHCR
+images and manual SSH deployment to the shared Linux amd64 host. Production
+never pulls from a registry; the runner transfers the tested image over SSH.
+
+CI runs for PRs and pushes to `main`: Node 24, locked dependency installation,
+typecheck, unit tests, real gateway integration tests, deployment syntax checks,
+and a standalone Docker build with a `/login` smoke test. Only successful main
+builds publish `sha-<full commit SHA>` and `latest`. PRs receive no deployment
+secrets and do not publish. External actions are SHA-pinned; Dependabot proposes
+updates to actions, Docker and npm dependencies.
+
+Configure the GitHub `production` environment with these secrets:
+
+| Secret | Value |
+| --- | --- |
+| `SSH_HOST` | Production hostname or IPv4 address |
+| `SSH_USER` | Deployment user with Docker and deployment-directory access |
+| `SSH_PRIVATE_KEY` | Dedicated SSH private key |
+| `SSH_KNOWN_HOSTS` | Host key verified through a trusted channel |
+| `FRONTEND_ENV` | Runtime dotenv configuration, example below |
+
+Set environment variable `FRONTEND_DEPLOY_PATH` to an absolute dedicated directory
+such as `/opt/marketbot-frontend`; optional `SSH_PORT` defaults to `22`.
+`GITHUB_TOKEN` supplies GHCR access automatically. Allow this repository to read
+its package if package access settings require it. Set branch protection to
+require both CI jobs, restrict the production environment to `main`, and configure
+reviewers there if your release process requires them.
+
+Example `FRONTEND_ENV` (no build-time secrets needed):
+
+```dotenv
+FRONTEND_PORT=3001
+MARKETBOT_API_URL=http://127.0.0.1:8080
+MARKETBOT_APP_ORIGIN=https://portal.example.com
+MARKETBOT_TRUST_INGRESS=true
+```
+
+Deploy the API first. The host needs Bash, gzip, Docker Engine and Compose v2
+supporting `up --wait --wait-timeout`. The service uses host networking and binds
+only to loopback; configure your HTTPS reverse proxy separately to forward the
+portal domain to `127.0.0.1:3001`, overwrite `X-Real-IP`, and preserve the public
+Host. The sibling API's dashboard `WEB_DOMAIN` is a different app; this workflow
+does not change that proxy or provision a portal certificate. Set ingress trust
+to false unless the trusted proxy is configured. Demo mode is forced off.
+
+Run the **Deploy** workflow on `main`, selecting `sha-<full commit SHA>` from a
+successful CI run. `latest` is supported but explicit commit tags make releases
+easier to audit. Each deployment stores a private release directory and activates
+the exact downloaded image ID. Compose waits for `/login` health before updating
+`current`; failed activation restores the previous release and reports failure.
+First-deployment failure stops the failed service. This checks frontend readiness;
+it does not verify live SMS, payments, or all upstream API features. A single
+container restart can briefly interrupt traffic.
+
+For a deliberate rollback, run Deploy with an earlier successful image tag.
+Retain previous release directories and Docker images for automatic rollback;
+do not run image pruning during deployment. Runtime secrets remain in mode-600
+files under mode-700 release directories. No live deployment is triggered by
+adding these workflows.

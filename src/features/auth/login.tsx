@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
+import { OTPInput } from 'input-otp';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -27,6 +28,7 @@ export function Login() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const verifying = useRef(false);
   const [resendAt, setResendAt] = useState(0);
   const [now, setNow] = useState(0);
   useEffect(() => {
@@ -44,6 +46,7 @@ export function Login() {
         body: { phone },
       });
       setChallenge(result.challenge_id);
+      setCode('');
       setNow(Date.now());
       setResendAt(Date.now() + result.resend_in * 1000);
     } catch (e) {
@@ -52,23 +55,30 @@ export function Login() {
       setBusy(false);
     }
   };
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!challenge) {
-      await send();
-      return;
-    }
+  const verify = async (value: string) => {
+    const completedCode = digits(value);
+    if (!challenge || !/^[0-9]{6}$/.test(completedCode) || busy || verifying.current) return;
+    verifying.current = true;
     setBusy(true);
     setError('');
     try {
-      await api('/auth/web/verify', { method: 'POST', body: { challenge_id: challenge, code } });
+      await api('/auth/web/verify', {
+        method: 'POST',
+        body: { challenge_id: challenge, code: completedCode },
+      });
       await client.invalidateQueries({ queryKey: ['session'] });
       router.replace(safeNext(params.get('next')));
     } catch (e) {
       setError(errorText(e));
     } finally {
+      verifying.current = false;
       setBusy(false);
     }
+  };
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (challenge) await verify(code);
+    else if (!busy) await send();
   };
   return (
     <div className="login-layout">
@@ -95,23 +105,49 @@ export function Login() {
             {challenge ? (
               <>
                 <Field label="کد تأیید">
-                  <input
-                    className="otp-field"
+                  <OTPInput
+                    key={challenge}
+                    containerClassName="otp-input"
                     dir="ltr"
+                    aria-label="کد تأیید ۶ رقمی"
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? 'login-error' : undefined}
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     required
                     autoFocus
+                    disabled={busy}
                     maxLength={6}
-                    pattern="[0-9]{6}"
+                    minLength={6}
+                    pattern="[0-9۰-۹٠-٩]*"
                     value={code}
-                    onChange={(e) => setCode(digits(e.target.value))}
+                    onChange={(value) => {
+                      const normalized = digits(value);
+                      setCode(normalized);
+                      setError('');
+                      if (normalized.length === 6) void verify(normalized);
+                    }}
+                    pasteTransformer={(value) => digits(value).replace(/[^0-9]/g, '')}
+                    render={({ slots }) => (
+                      <div className="otp-slots" dir="ltr" aria-hidden="true">
+                        {slots.map((slot, index) => (
+                          <div
+                            key={index}
+                            className={`otp-slot${slot.isActive ? ' active' : ''}${error ? ' invalid' : ''}`}
+                          >
+                            {slot.char}
+                            {slot.hasFakeCaret && <span className="otp-caret" />}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   />
                 </Field>
                 <div className="otp-links">
                   <button
                     type="button"
                     className="text-link"
+                    disabled={busy}
                     onClick={() => {
                       setChallenge('');
                       setCode('');
@@ -136,22 +172,34 @@ export function Login() {
                 <input
                   type="tel"
                   dir="ltr"
-                  inputMode="tel"
+                  inputMode="numeric"
                   autoComplete="tel"
-                  placeholder="0912 123 4567"
+                  placeholder="09121234567"
                   required
-                  maxLength={20}
+                  minLength={11}
+                  maxLength={11}
+                  pattern="09[0-9]{9}"
                   value={phone}
-                  onChange={(e) => setPhone(digits(e.target.value))}
+                  onChange={(e) =>
+                    setPhone(
+                      digits(e.target.value)
+                        .replace(/[^0-9]/g, '')
+                        .slice(0, 11),
+                    )
+                  }
                 />
               </Field>
             )}
             {error && (
-              <p className="inline-error" role="alert">
+              <p id="login-error" className="inline-error" role="alert">
                 {error}
               </p>
             )}
-            <button className="button primary full" disabled={busy} type="submit">
+            <button
+              className="button primary full"
+              disabled={busy || (Boolean(challenge) && code.length !== 6)}
+              type="submit"
+            >
               {busy ? 'در حال پردازش…' : challenge ? 'تأیید و ورود' : 'دریافت کد ورود'}
               <ArrowLeft size={17} />
             </button>

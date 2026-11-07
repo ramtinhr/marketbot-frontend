@@ -1,0 +1,85 @@
+name: Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'CI image tag (sha-<full commit SHA> recommended; latest also supported)'
+        required: true
+        default: latest
+permissions:
+  contents: read
+concurrency:
+  group: deploy-production-frontend
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Resolve image
+        id: image
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          [[ "$IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]] || exit 1
+          echo "ref=ghcr.io/${GITHUB_REPOSITORY,,}:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull tested image on runner
+        env:
+          IMAGE: ${{ steps.image.outputs.ref }}
+        run: docker pull --platform linux/amd64 "$IMAGE"
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+        run: |
+          set -euo pipefail
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ && "$SSH_USER" =~ ^[a-zA-Z0-9_-]+$ && "$SSH_PORT" =~ ^[0-9]+$ ]] || exit 1
+          test -n "$SSH_PRIVATE_KEY" && test -n "$SSH_KNOWN_HOSTS"
+          umask 077
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<CONF
+          Host target
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile ~/.ssh/id_deploy
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            BatchMode yes
+            ConnectTimeout 15
+            ServerAliveInterval 30
+            ServerAliveCountMax 10
+          CONF
+      - name: Transfer and activate release
+        env:
+          IMAGE: ${{ steps.image.outputs.ref }}
+          FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
+          FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
+        run: bash deploy/ship.sh
+      - name: Deployment summary
+        if: always()
+        env:
+          RESULT: ${{ job.status }}
+          IMAGE: ${{ steps.image.outputs.ref }}
+        run: printf 'Deployment %s\n\nImage %s\n' "$RESULT" "$IMAGE" >> "$GITHUB_STEP_SUMMARY"
+      - name: Clean credentials
+        if: always()
+        run: rm -f env.out ~/.ssh/id_deploy ~/.ssh/config ~/.ssh/known_hosts

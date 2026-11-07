@@ -26,17 +26,21 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
   const clientIp =
     process.env.MARKETBOT_TRUST_INGRESS === 'true' ? request.headers.get('x-real-ip') : null;
   try {
+    const requestBody = request.method === 'GET' ? undefined : (await request.text()) || undefined;
     const response = await fetch(upstream, {
       method: request.method,
       cache: 'no-store',
       redirect: 'error',
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(path.startsWith('crypto/') ? 40000 : 15000),
       headers: {
-        'Content-Type': 'application/json',
+        ...(requestBody ? { 'Content-Type': 'application/json' } : {}),
         ...(clientIp && isIP(clientIp) ? { 'X-Forwarded-For': clientIp } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(path.startsWith('crypto/') && request.headers.get('idempotency-key')
+          ? { 'Idempotency-Key': request.headers.get('idempotency-key')! }
+          : {}),
       },
-      body: request.method === 'GET' ? undefined : await request.text(),
+      body: requestBody,
     });
     const routeMissing = response.status === 404 && path.startsWith('auth/web/');
     const invalidResponseCode = routeMissing ? 'api_route_missing' : 'api_unavailable';

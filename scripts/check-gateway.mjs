@@ -6,6 +6,7 @@ import { setTimeout } from 'node:timers/promises';
 const token = 'disposable-test-session';
 let receivedAuthorization;
 let receivedIp;
+let receivedKey;
 const mock = http.createServer(async (req, res) => {
   let body = '';
   for await (const chunk of req) body += chunk;
@@ -36,8 +37,14 @@ const mock = http.createServer(async (req, res) => {
     return;
   }
   receivedAuthorization = req.headers.authorization;
+  receivedKey = req.headers['idempotency-key'];
   receivedIp = req.headers['x-forwarded-for'];
   if (req.url === '/v1/auth/logout') {
+    if (!body && req.headers['content-type'] === 'application/json') {
+      res.writeHead(400);
+      res.end(JSON.stringify({ code: 'FST_ERR_CTP_EMPTY_JSON_BODY' }));
+      return;
+    }
     res.writeHead(204);
     res.end();
     return;
@@ -121,7 +128,32 @@ try {
   assert.equal(me.status, 200);
   assert.equal(receivedAuthorization, `Bearer ${token}`);
   assert.equal(receivedIp, undefined, 'untrusted forwarding headers are not propagated');
-  const logout = await post('/auth/logout', {}, { Cookie: cookieHeader });
+  const funding = await fetch(origin + '/api/gateway/crypto/deposits', {
+    method: 'POST',
+    headers: {
+      Origin: origin,
+      Cookie: cookieHeader,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': 'crypto-test-retry-key',
+    },
+    body: JSON.stringify({ asset: 'USDT', network: 'BEP20', tx_id: 'test' }),
+  });
+  assert.equal(funding.status, 200);
+  assert.equal(receivedKey, 'crypto-test-retry-key');
+  assert.equal(receivedAuthorization, `Bearer ${token}`);
+  assert.equal(
+    (
+      await fetch(origin + '/api/gateway/crypto/withdrawals/one/approve', {
+        method: 'POST',
+        headers: { Origin: origin, Cookie: cookieHeader },
+      })
+    ).status,
+    404,
+  );
+  const logout = await fetch(origin + '/api/gateway/auth/logout', {
+    method: 'POST',
+    headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json' },
+  });
   assert.equal(logout.status, 204);
   assert.match(logout.headers.get('set-cookie'), /Max-Age=0|Expires=Thu, 01 Jan 1970/i);
   console.log(

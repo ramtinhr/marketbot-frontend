@@ -2,6 +2,7 @@
 export function allowedRoute(method: string, path: string): boolean {
   const routes: Record<string, RegExp[]> = {
     GET: [
+      /^crypto\/(assets|deposits|withdrawals)$/,
       /^me$/,
       /^wallet$/,
       /^wallet\/entries$/,
@@ -16,6 +17,8 @@ export function allowedRoute(method: string, path: string): boolean {
       /^auction\/orders$/,
     ],
     POST: [
+      /^crypto\/(deposit-address|deposits|withdrawals)$/,
+      /^crypto\/withdrawals\/[a-zA-Z0-9-]+\/cancel$/,
       /^auth\/web\/(send|verify)$/,
       /^auth\/logout$/,
       /^auth\/otp\/(send|verify)$/,

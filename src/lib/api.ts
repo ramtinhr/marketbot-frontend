@@ -1,21 +1,31 @@
 export class ApiError extends Error {
-  constructor(
-    public code: string,
-    public status: number,
-    public data: Record<string, unknown> = {},
-  ) {
+  code: string;
+  status: number;
+  data: Record<string, unknown>;
+  constructor(code: string, status: number, data: Record<string, unknown> = {}) {
     super(code);
+    this.code = code;
+    this.status = status;
+    this.data = data;
   }
 }
 export async function api<T>(
   path: string,
-  options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
+  options: {
+    method?: string;
+    body?: unknown;
+    signal?: AbortSignal;
+    headers?: Record<string, string>;
+  } = {},
 ): Promise<T> {
   const response = await fetch(`/api/gateway${path}`, {
     method: options.method ?? 'GET',
     credentials: 'same-origin',
     signal: options.signal,
-    headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...options.headers,
+    },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
   const body = response.status === 204 ? {} : await response.json().catch(() => ({}));

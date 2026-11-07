@@ -36,3 +36,25 @@ test('Iranian IBAN validation checks the country, length, and checksum', () => {
   assert.equal(validIban('IR820540102680020817909003'), false);
   assert.equal(validIban('DE820540102680020817909002'), false);
 });
+
+test('crypto gateway permits customer funding routes but never admin review or arbitrary methods', () => {
+  for (const [method, path] of [
+    ['GET', 'crypto/assets'],
+    ['GET', 'crypto/deposits'],
+    ['GET', 'crypto/withdrawals'],
+    ['POST', 'crypto/deposit-address'],
+    ['POST', 'crypto/deposits'],
+    ['POST', 'crypto/withdrawals'],
+    ['POST', 'crypto/withdrawals/0a0b-1/cancel'],
+  ])
+    assert.equal(allowedRoute(method, path), true, `${method} ${path}`);
+  for (const [method, path] of [
+    ['POST', 'crypto/withdrawals/0a0b-1/approve'],
+    ['POST', 'crypto/withdrawals/0a0b-1/paid'],
+    ['GET', 'backoffice/v1/crypto/withdrawals'],
+    ['DELETE', 'crypto/withdrawals/1'],
+    ['GET', 'crypto/deposit-address'],
+    ['POST', 'crypto/withdrawals/../cancel'],
+  ])
+    assert.equal(allowedRoute(method, path), false, `${method} ${path}`);
+});
