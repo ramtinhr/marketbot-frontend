@@ -230,7 +230,9 @@ First-deployment failure stops the failed service. This checks frontend readines
 it does not verify live SMS, payments, or all upstream API features. A single
 container restart can briefly interrupt traffic.
 
-The deployment job allows 180 minutes for slow image uploads over SSH. For
+The deployment job allows 360 minutes (6 hours) for slow image uploads over SSH,
+the maximum execution time for a GitHub-hosted runner. This replaces the earlier
+180-minute cutoff; GitHub still enforces its 6-hour limit. For
 example, transferring 235 MB at 40 kB/s takes about 98 minutes before image
 loading and activation. If a run ends with `The operation was canceled` during
 upload, check the job conclusion for a timeout or manual cancellation. Install

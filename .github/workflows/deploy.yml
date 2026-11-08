@@ -15,8 +15,8 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    # Image uploads over the production SSH link can take over an hour.
-    timeout-minutes: 180
+    # Slow SSH uploads need the full GitHub-hosted runner allowance (6 hours).
+    timeout-minutes: 360
     environment: production
     permissions:
       contents: read
