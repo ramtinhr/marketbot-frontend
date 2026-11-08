@@ -224,7 +224,8 @@ to false unless the trusted proxy is configured. Demo mode is forced off.
 Run the **Deploy** workflow on `main`, selecting `sha-<full commit SHA>` from a
 successful CI run. `latest` is supported but explicit commit tags make releases
 easier to audit. Each deployment stores a private release directory and activates
-the exact downloaded image ID. Compose waits for `/login` health before updating
+a content-specific release tag that survives transfer between Docker image stores.
+Compose waits for `/login` health before updating
 `current`; failed activation restores the previous release and reports failure.
 First-deployment failure stops the failed service. This checks frontend readiness;
 it does not verify live SMS, payments, or all upstream API features. A single
