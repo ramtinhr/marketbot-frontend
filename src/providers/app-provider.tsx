@@ -1,4 +1,6 @@
 'use client';
+import { ui } from '@/lib/ui-styles';
+
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CheckCircle2, AlertCircle, X } from 'lucide-react';
@@ -29,13 +31,18 @@ export function AppProvider({ children, demo }: { children: ReactNode; demo: boo
     <QueryClientProvider client={client}>
       <AppContext.Provider value={{ demo, notify }}>
         {children}
-        <div className="notifications" aria-live="polite">
+        <div
+          data-ui="notifications"
+          className="fixed [bottom:24px] [left:26px] [z-index:120] flex flex-col [gap:9px] [@media(width<=640px)]:[bottom:16px] [@media(width<=640px)]:[left:16px]"
+          aria-live="polite"
+        >
           {notices.map((n) => (
-            <div className={`notification ${n.error ? 'error' : ''}`} key={n.id}>
+            <div {...ui(`notification ${n.error ? 'error' : ''}`)} key={n.id}>
               {n.error ? <AlertCircle size={19} /> : <CheckCircle2 size={19} />}
               <span>{n.text}</span>
               <button
-                className="icon-button"
+                data-ui="icon-button"
+                className="inline-flex items-center justify-center [width:30px] [height:30px] [border-radius:7px] [color:#8d99a7] [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [@media(width<=640px)]:[min-width:44px] [@media(width<=640px)]:[min-height:44px] [@media(width>640px)]:[@media(width<=800px)]:[min-width:34px] [@media(width>640px)]:[@media(width<=800px)]:[min-height:34px] [&:hover]:[background:#f3f6f7] [&:hover]:[color:var(--text)]"
                 aria-label="بستن پیام"
                 onClick={() => setNotices((items) => items.filter((x) => x.id !== n.id))}
               >

@@ -1,4 +1,5 @@
 'use client';
+import { Select, SelectOption } from '@/components/select';
 import { useRef, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Copy, CheckCircle2 } from 'lucide-react';
@@ -48,6 +49,7 @@ export function CryptoWalletActions({
   return (
     <Modal
       open
+      size="wide"
       onOpenChange={(open) => !open && !locked && onClose()}
       title={action === 'deposit' ? 'واریز رمزارز' : 'برداشت رمزارز'}
       description={
@@ -56,33 +58,33 @@ export function CryptoWalletActions({
           : 'درخواست برداشت برای بررسی و ارسال دستی ثبت می‌شود.'
       }
     >
-      <div className="form-stack">
+      <div data-ui="form-stack" className="flex flex-col [gap:19px]">
         <Field label="دارایی">
-          <select value={asset} disabled={locked} onChange={(e) => onAssetChange(e.target.value)}>
+          <Select value={asset} disabled={locked} onValueChange={(value) => onAssetChange(value)}>
             {options.map((value) => (
-              <option key={value} value={value}>
+              <SelectOption key={value} value={value}>
                 {assetName(value)} · {value}
-              </option>
+              </SelectOption>
             ))}
-          </select>
+          </Select>
         </Field>
         <State loading={loading} error={error} retry={retry}>
           <Field label="شبکه">
-            <select
+            <Select
               value={selected?.network ?? ''}
               disabled={locked}
-              onChange={(e) => setNetwork(e.target.value)}
+              onValueChange={(value) => setNetwork(value)}
             >
-              {!networks.length && <option value="">شبکه‌ای در دسترس نیست</option>}
+              {!networks.length && <SelectOption value="">شبکه‌ای در دسترس نیست</SelectOption>}
               {networks.map((a) => (
-                <option key={a.network} value={a.network}>
+                <SelectOption key={a.network} value={a.network}>
                   {networkNames[a.network] ?? a.network}
                   {!(action === 'deposit' ? a.deposit_enabled : a.withdrawal_enabled)
                     ? ' · غیرفعال'
                     : ''}
-                </option>
+                </SelectOption>
               ))}
-            </select>
+            </Select>
           </Field>
           {selected ? (
             <CryptoForm
@@ -93,7 +95,12 @@ export function CryptoWalletActions({
               onBusy={setLocked}
             />
           ) : (
-            <p className="form-note">این دارایی هنوز برای انتقال رمزارز فعال نشده است.</p>
+            <p
+              data-ui="form-note"
+              className="[background:#f5f8fa] [border-radius:7px] [padding-top:11px] [padding-right:11px] [padding-bottom:11px] [padding-left:11px] [font-size:var(--text-xs)] [color:#66758a] [margin-top:14px]"
+            >
+              این دارایی هنوز برای انتقال رمزارز فعال نشده است.
+            </p>
           )}
         </State>
       </div>
@@ -149,7 +156,10 @@ function CryptoForm({
     if (!enabled || !session.data?.user.id) return;
     const userId = String(session.data.user.id);
     if (action === 'deposit') {
-      if (!address || !tx.trim()) { setError('ابتدا آدرس واریز را دریافت و سپس شناسهٔ تراکنش را وارد کنید.'); return; }
+      if (!address || !tx.trim()) {
+        setError('ابتدا آدرس واریز را دریافت و سپس شناسهٔ تراکنش را وارد کنید.');
+        return;
+      }
       await perform(async () => {
         const result = await fundingRequest<{ deposit: CryptoDeposit }>(
           userId,
@@ -212,24 +222,40 @@ function CryptoForm({
   };
   if (credited)
     return (
-      <div className="crypto-success" role="status">
+      <div
+        data-ui="crypto-success"
+        className="grid [gap:16px] [justify-items:start] [padding-top:20px] [padding-right:0] [padding-bottom:20px] [padding-left:0] [&_svg]:[color:#19885c] [&_>_bdi]:[font-family:monospace] [&_>_bdi]:[font-size:20px]"
+        role="status"
+      >
         <CheckCircle2 size={30} />
         <strong>واریز تأیید و به کیف پول اضافه شد.</strong>
         <bdi>
           {credited.amount} {credited.asset}
         </bdi>
-        <p className="crypto-code" dir="ltr">
+        <p
+          data-ui="crypto-code"
+          className="[overflow-wrap:anywhere] [word-break:break-word] [font-family:monospace] [direction:ltr] [unicode-bidi:isolate] block [max-width:360px] [font-size:var(--text-sm)]"
+          dir="ltr"
+        >
           {credited.tx_id}
         </p>
-        <button className="button primary" onClick={onClose}>
+        <button
+          data-ui="button primary"
+          className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
+          onClick={onClose}
+        >
           بازگشت به کیف پول
         </button>
       </div>
     );
   return (
-    <form noValidate className="form-stack" onSubmit={submit}>
+    <form noValidate data-ui="form-stack" className="flex flex-col [gap:19px]" onSubmit={submit}>
       {!enabled && (
-        <p className="form-note" role="status">
+        <p
+          data-ui="form-note"
+          className="[background:#f5f8fa] [border-radius:7px] [padding-top:11px] [padding-right:11px] [padding-bottom:11px] [padding-left:11px] [font-size:var(--text-xs)] [color:#66758a] [margin-top:14px]"
+          role="status"
+        >
           {demo
             ? 'در محیط نمایشی انتقال واقعی انجام نمی‌شود.'
             : action === 'deposit'
@@ -239,12 +265,18 @@ function CryptoForm({
       )}
       {action === 'deposit' ? (
         <>
-          <p className="form-note">
+          <p
+            data-ui="form-note"
+            className="[background:#f5f8fa] [border-radius:7px] [padding-top:11px] [padding-right:11px] [padding-bottom:11px] [padding-left:11px] [font-size:var(--text-xs)] [color:#66758a] [margin-top:14px]"
+          >
             فقط {asset.asset} روی شبکهٔ {networkNames[asset.network]} به این آدرس ارسال کنید. مقدار
             واریز از شبکه محاسبه می‌شود.
           </p>
           {asset.contract && (
-            <div className="crypto-address">
+            <div
+              data-ui="crypto-address"
+              className="grid [gap:10px] [padding-top:16px] [padding-right:16px] [padding-bottom:16px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:var(--line)] [border-right-width:1px] [border-right-style:solid] [border-right-color:var(--line)] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:var(--line)] [border-left-width:1px] [border-left-style:solid] [border-left-color:var(--line)] [border-radius:10px] [background:#f6f9f8] [&_>_span]:[font-size:var(--text-sm)] [&_>_span]:font-semibold [&_bdi]:[overflow-wrap:anywhere] [&_bdi]:[word-break:break-word] [&_bdi]:[font-family:monospace] [&_bdi]:[direction:ltr] [&_bdi]:[unicode-bidi:isolate] [&_bdi]:[user-select:all] [&_bdi]:[font-size:var(--text-sm)]"
+            >
               <span>قرارداد تأییدشدهٔ توکن</span>
               <bdi>{asset.contract}</bdi>
               <small>این قرارداد، آدرس واریز شما نیست.</small>
@@ -252,7 +284,8 @@ function CryptoForm({
           )}
           {!address ? (
             <button
-              className="button primary"
+              data-ui="button primary"
+              className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
               type="button"
               disabled={!enabled || busy || !session.data}
               onClick={() =>
@@ -270,12 +303,16 @@ function CryptoForm({
             </button>
           ) : (
             <>
-              <div className="crypto-address">
+              <div
+                data-ui="crypto-address"
+                className="grid [gap:10px] [padding-top:16px] [padding-right:16px] [padding-bottom:16px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:var(--line)] [border-right-width:1px] [border-right-style:solid] [border-right-color:var(--line)] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:var(--line)] [border-left-width:1px] [border-left-style:solid] [border-left-color:var(--line)] [border-radius:10px] [background:#f6f9f8] [&_>_span]:[font-size:var(--text-sm)] [&_>_span]:font-semibold [&_bdi]:[overflow-wrap:anywhere] [&_bdi]:[word-break:break-word] [&_bdi]:[font-family:monospace] [&_bdi]:[direction:ltr] [&_bdi]:[unicode-bidi:isolate] [&_bdi]:[user-select:all] [&_bdi]:[font-size:var(--text-sm)]"
+              >
                 <span>آدرس واریز شما · {networkNames[asset.network]}</span>
                 <bdi>{address.address}</bdi>
                 <button
                   type="button"
-                  className="text-link"
+                  data-ui="text-link"
+                  className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
                   onClick={() => void copy(address.address)}
                 >
                   <Copy size={15} /> کپی آدرس
@@ -298,7 +335,11 @@ function CryptoForm({
                   }}
                 />
               </Field>
-              <button className="button primary" disabled={busy || !tx.trim()}>
+              <button
+                data-ui="button primary"
+                className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
+                disabled={busy || !tx.trim()}
+              >
                 {busy ? 'در حال بررسی تراکنش…' : 'بررسی تراکنش و افزایش موجودی'}
               </button>
             </>
@@ -307,7 +348,10 @@ function CryptoForm({
       ) : (
         <>
           {review ? (
-            <div className="review-list">
+            <div
+              data-ui="review-list"
+              className="flex flex-col [&_>_div]:flex [&_>_div]:justify-between [&_>_div]:[gap:15px] [&_>_div]:[padding-top:15px] [&_>_div]:[padding-right:0] [&_>_div]:[padding-bottom:15px] [&_>_div]:[padding-left:0] [&_>_div]:[border-bottom-width:1px] [&_>_div]:[border-bottom-style:solid] [&_>_div]:[border-bottom-color:var(--line)] [&_>_div]:[font-size:var(--text-xs)] [&_>_div_>_span]:[color:#94a0ad] [&_strong]:[font-size:var(--text-xs)] [&_strong]:font-semibold"
+            >
               <div>
                 <span>مقدار دریافتی مقصد</span>
                 <bdi>
@@ -320,7 +364,12 @@ function CryptoForm({
               </div>
               <div>
                 <span>آدرس مقصد</span>
-                <bdi className="crypto-code">{destination}</bdi>
+                <bdi
+                  data-ui="crypto-code"
+                  className="[overflow-wrap:anywhere] [word-break:break-word] [font-family:monospace] [direction:ltr] [unicode-bidi:isolate] block [max-width:360px] [font-size:var(--text-sm)]"
+                >
+                  {destination}
+                </bdi>
               </div>
               {tag && (
                 <div>
@@ -328,12 +377,16 @@ function CryptoForm({
                   <bdi>{tag}</bdi>
                 </div>
               )}
-              <p className="form-note">
+              <p
+                data-ui="form-note"
+                className="[background:#f5f8fa] [border-radius:7px] [padding-top:11px] [padding-right:11px] [padding-bottom:11px] [padding-left:11px] [font-size:var(--text-xs)] [color:#66758a] [margin-top:14px]"
+              >
                 کارمزد شبکه با مجموعه است. مبلغ پس از ثبت، تا بررسی و پرداخت رزرو می‌شود.
               </p>
               <button
                 type="button"
-                className="text-link"
+                data-ui="text-link"
+                className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
                 disabled={busy}
                 onClick={() => setReview(false)}
               >
@@ -374,22 +427,36 @@ function CryptoForm({
                   />
                 </Field>
               )}
-              <p className="form-note">
+              <p
+                data-ui="form-note"
+                className="[background:#f5f8fa] [border-radius:7px] [padding-top:11px] [padding-right:11px] [padding-bottom:11px] [padding-left:11px] [font-size:var(--text-xs)] [color:#66758a] [margin-top:14px]"
+              >
                 کارمزد برداشت: {asset.withdrawal_fee} {asset.asset} · هزینهٔ شبکه با مجموعه است.
               </p>
             </>
           )}
-          <button className="button primary" disabled={!enabled || busy || !session.data}>
+          <button
+            data-ui="button primary"
+            className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
+            disabled={!enabled || busy || !session.data}
+          >
             {busy ? 'در حال ثبت…' : review ? 'تأیید و ثبت درخواست برداشت' : 'بررسی اطلاعات برداشت'}
           </button>
         </>
       )}
       {error && (
-        <p className="inline-error" role="alert">
+        <p
+          data-ui="inline-error"
+          className="[font-size:var(--text-xs)] [color:var(--error-text)] [background:#fff1f3] [padding-top:10px] [padding-right:12px] [padding-bottom:10px] [padding-left:12px] [border-radius:7px] [line-height:1.9] [&_[data-ui~='text-link']]:[color:var(--error-text)]"
+          role="alert"
+        >
           {error}
         </p>
       )}
-      <p className="form-note">
+      <p
+        data-ui="form-note"
+        className="[background:#f5f8fa] [border-radius:7px] [padding-top:11px] [padding-right:11px] [padding-bottom:11px] [padding-left:11px] [font-size:var(--text-xs)] [color:#66758a] [margin-top:14px]"
+      >
         اگر ارتباط قطع شد، ابتدا تاریخچه را بررسی کنید؛ تلاش دوباره با همین اطلاعات، همان درخواست را
         پیگیری می‌کند.
       </p>

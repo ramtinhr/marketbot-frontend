@@ -1,16 +1,19 @@
 'use client';
+import { Select, SelectOption } from '@/components/select';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
 import { parseDecimal, decimalUnits, formatAmountInput } from '@/lib/numbers';
 import { api, errorText } from '@/lib/api';
-import { useBanks, useResource, useWallet } from '@/lib/use-data';
+import { useBanks, useResource, useWallet, useSession } from '@/lib/use-data';
 import { useApp } from '@/providers/app-provider';
 import { assetName, digits, number } from '@/lib/format';
 import { validIban } from '@/lib/validation';
 import { Field, Modal, Money } from '@/components/ui';
 import { CryptoWalletActions } from './crypto-actions';
 import { useCryptoAssets } from '@/lib/use-data';
+import { fundingRequest } from '@/lib/crypto-funding';
+import type { Payment, PaymentConfig } from '@/lib/payments';
 import type { Withdrawal } from '@/lib/types';
 function FiatWalletActions({
   action,
@@ -27,6 +30,8 @@ function FiatWalletActions({
 }) {
   const { demo, notify } = useApp();
   const wallet = useWallet();
+  const session = useSession();
+  const [provider, setProvider] = useState('');
   const banks = useBanks();
   const [asset, setAsset] = useState(initialAsset);
   const [amount, setAmount] = useState('');
@@ -40,10 +45,10 @@ function FiatWalletActions({
   const [error, setError] = useState('');
   const [resendAt, setResendAt] = useState(0);
   const [now, setNow] = useState(0);
-  const charge = useResource<{ min_toman: number; max_toman: number }>(
+  const charge = useResource<PaymentConfig>(
     'charge-info',
-    '/wallet/charge',
-    { min_toman: 10000, max_toman: 100000000 },
+    '/payments/config',
+    { min_toman: 10000, max_toman: 100000000, providers: [], default_provider: null },
     60000,
   );
   const withdrawals = useResource<{
@@ -108,11 +113,17 @@ function FiatWalletActions({
           setError('در محیط نمایشی درگاه پرداخت باز نمی‌شود.');
           return;
         }
-        const result = await api<{ url: string }>('/wallet/charge', {
-          method: 'POST',
-          body: { amount: canonical },
-        });
-        const url = new URL(result.url, location.origin);
+        if (!session.data?.user.id) throw new Error('no session');
+        const result = await fundingRequest<{ payment: Payment }>(
+          String(session.data.user.id),
+          '/payments',
+          {
+            amount: canonical,
+            provider: provider || charge.data.default_provider,
+          },
+        );
+        if (!result.payment.url) throw new Error('no checkout URL');
+        const url = new URL(result.payment.url);
         if (!['https:', 'http:'].includes(url.protocol)) throw new Error('invalid gateway');
         location.assign(url.toString());
       } catch (e) {
@@ -187,27 +198,53 @@ function FiatWalletActions({
           : 'برداشت پس از تأیید پیامکی ثبت می‌شود و برای بررسی در انتظار می‌ماند.'
       }
     >
-      <form noValidate className="form-stack" onSubmit={submit}>
+      <form noValidate data-ui="form-stack" className="flex flex-col [gap:19px]" onSubmit={submit}>
         {step === 1 ? (
           <>
             {
               <Field label="دارایی">
-                <select
+                <Select
                   value={asset}
-                  onChange={(e) => {
-                    onAssetChange(e.target.value);
-                    setAsset(e.target.value);
+                  onValueChange={(value) => {
+                    onAssetChange(value);
+                    setAsset(value);
                     setNetwork('');
                   }}
                 >
                   {assetOptions.map((a) => (
-                    <option key={a} value={a}>
+                    <SelectOption key={a} value={a}>
                       {assetName(a)} · {a}
-                    </option>
+                    </SelectOption>
                   ))}
-                </select>
+                </Select>
               </Field>
             }
+            {action === 'deposit' && (
+              <Field label="درگاه پرداخت">
+                <Select
+                  value={provider || charge.data?.default_provider || ''}
+                  onValueChange={(value) => setProvider(value)}
+                >
+                  {charge.data?.providers.map((p) => (
+                    <SelectOption key={p.id} value={p.id}>
+                      {p.id === 'payment_intents' ? 'درگاه بانکی' : p.id}
+                    </SelectOption>
+                  ))}
+                </Select>
+                {charge.error && (
+                  <p
+                    data-ui="inline-error"
+                    className="[font-size:var(--text-xs)] [color:var(--error-text)] [background:#fff1f3] [padding-top:10px] [padding-right:12px] [padding-bottom:10px] [padding-left:12px] [border-radius:7px] [line-height:1.9] [&_[data-ui~='text-link']]:[color:var(--error-text)]"
+                    role="alert"
+                  >
+                    {errorText(charge.error)}
+                  </p>
+                )}
+                {!charge.isPending && !charge.error && !charge.data?.providers.length && (
+                  <p role="status">درگاه بانکی هنوز فعال نشده است.</p>
+                )}
+              </Field>
+            )}
             <Field
               label={
                 action === 'deposit'
@@ -232,14 +269,14 @@ function FiatWalletActions({
               (asset === 'IRT' ? (
                 <>
                   <Field label="حساب مقصد">
-                    <select value={bank} onChange={(e) => setBank(e.target.value)}>
-                      <option value="other">وارد کردن حساب مقصد</option>
+                    <Select value={bank} onValueChange={(value) => setBank(value)}>
+                      <SelectOption value="other">وارد کردن حساب مقصد</SelectOption>
                       {banks.data?.accounts.map((b) => (
-                        <option key={b.id} value={b.id}>
+                        <SelectOption key={b.id} value={b.id}>
                           {b.label} · {b.holder_name}
-                        </option>
+                        </SelectOption>
                       ))}
-                    </select>
+                    </Select>
                   </Field>
                   {bank === 'other' && (
                     <>
@@ -261,24 +298,29 @@ function FiatWalletActions({
                       </Field>
                     </>
                   )}
-                  <Link className="text-link" href="/bank-accounts" onClick={onClose}>
+                  <Link
+                    data-ui="text-link"
+                    className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
+                    href="/bank-accounts"
+                    onClick={onClose}
+                  >
                     مدیریت حساب‌های بانکی
                   </Link>
                 </>
               ) : (
                 <>
                   <Field label="شبکهٔ برداشت">
-                    <select
+                    <Select
                       required
                       value={network || networks[0] || ''}
-                      onChange={(e) => setNetwork(e.target.value)}
+                      onValueChange={(value) => setNetwork(value)}
                     >
                       {networks.map((n) => (
-                        <option key={n} value={n}>
+                        <SelectOption key={n} value={n}>
                           {n}
-                        </option>
+                        </SelectOption>
                       ))}
-                    </select>
+                    </Select>
                   </Field>
                   <Field label="آدرس مقصد" hint="شبکهٔ مقصد باید با شبکهٔ برداشت یکسان باشد.">
                     <input
@@ -293,14 +335,20 @@ function FiatWalletActions({
           </>
         ) : (
           <>
-            <div className="security-message">
+            <div
+              data-ui="security-message"
+              className="flex items-center [gap:12px] [color:var(--accent)] [&_strong]:[font-size:var(--text-sm)] [&_p]:[font-size:var(--text-xs)] [&_p]:[color:#9aa7b2] [&_p]:[margin-top:4px]"
+            >
               <ShieldCheck size={24} />
               <div>
                 <strong>تأیید درخواست برداشت</strong>
                 <p>کد پیامکی را برای ثبت درخواست وارد کنید.</p>
               </div>
             </div>
-            <div className="review-list">
+            <div
+              data-ui="review-list"
+              className="flex flex-col [&_>_div]:flex [&_>_div]:justify-between [&_>_div]:[gap:15px] [&_>_div]:[padding-top:15px] [&_>_div]:[padding-right:0] [&_>_div]:[padding-bottom:15px] [&_>_div]:[padding-left:0] [&_>_div]:[border-bottom-width:1px] [&_>_div]:[border-bottom-style:solid] [&_>_div]:[border-bottom-color:var(--line)] [&_>_div]:[font-size:var(--text-xs)] [&_>_div_>_span]:[color:#94a0ad] [&_strong]:[font-size:var(--text-xs)] [&_strong]:font-semibold"
+            >
               <div>
                 <span>مقدار برداشت</span>
                 <Money
@@ -310,10 +358,16 @@ function FiatWalletActions({
                 />
               </div>
             </div>
-            <div className="review-list">
+            <div
+              data-ui="review-list"
+              className="flex flex-col [&_>_div]:flex [&_>_div]:justify-between [&_>_div]:[gap:15px] [&_>_div]:[padding-top:15px] [&_>_div]:[padding-right:0] [&_>_div]:[padding-bottom:15px] [&_>_div]:[padding-left:0] [&_>_div]:[border-bottom-width:1px] [&_>_div]:[border-bottom-style:solid] [&_>_div]:[border-bottom-color:var(--line)] [&_>_div]:[font-size:var(--text-xs)] [&_>_div_>_span]:[color:#94a0ad] [&_strong]:[font-size:var(--text-xs)] [&_strong]:font-semibold"
+            >
               <div>
                 <span>مقصد برداشت</span>
-                <bdi className="destination-cell">
+                <bdi
+                  data-ui="destination-cell"
+                  className="block [max-width:150px] [text-overflow:ellipsis] overflow-hidden"
+                >
                   {asset === 'IRT' && bank !== 'other'
                     ? banks.data?.accounts.find((b) => b.id === bank)?.iban
                     : destination}
@@ -337,7 +391,8 @@ function FiatWalletActions({
             </div>
             <button
               type="button"
-              className="text-link"
+              data-ui="text-link"
+              className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
               onClick={() => {
                 setStep(1);
                 setCode('');
@@ -359,7 +414,8 @@ function FiatWalletActions({
             </Field>
             <button
               type="button"
-              className="text-link"
+              data-ui="text-link"
+              className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
               disabled={busy || wait > 0}
               onClick={sendCode}
             >
@@ -368,18 +424,35 @@ function FiatWalletActions({
           </>
         )}
         {error && (
-          <p className="inline-error" role="alert">
+          <p
+            data-ui="inline-error"
+            className="[font-size:var(--text-xs)] [color:var(--error-text)] [background:#fff1f3] [padding-top:10px] [padding-right:12px] [padding-bottom:10px] [padding-left:12px] [border-radius:7px] [line-height:1.9] [&_[data-ui~='text-link']]:[color:var(--error-text)]"
+            role="alert"
+          >
             {error}
           </p>
         )}
-        <div className="dialog-actions">
-          <button type="button" className="button secondary" onClick={onClose}>
+        <div
+          data-ui="dialog-actions"
+          className="flex justify-end [gap:9px] [padding-top:22px] [margin-top:3px] [border-top-width:1px] [border-top-style:solid] [border-top-color:var(--line)] [@media(width<=640px)]:flex-wrap [&_[data-ui~='button']]:[min-width:96px]"
+        >
+          <button
+            type="button"
+            data-ui="button secondary"
+            className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
+            onClick={onClose}
+          >
             انصراف
           </button>
           <button
             type="submit"
-            className="button primary"
-            disabled={busy || (action === 'deposit' && !charge.data)}
+            data-ui="button primary"
+            className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
+            disabled={
+              busy ||
+              (action === 'deposit' &&
+                (!charge.data?.providers.length || !session.data?.user.id || !!charge.error))
+            }
           >
             {busy
               ? 'در حال پردازش…'

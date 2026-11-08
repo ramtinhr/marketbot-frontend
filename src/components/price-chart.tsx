@@ -1,4 +1,6 @@
 'use client';
+import { ui } from '@/lib/ui-styles';
+
 import { useId, useState, useRef, useEffect } from 'react';
 import { Area, AreaChart, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { number } from '@/lib/format';
@@ -22,21 +24,30 @@ export function PriceChart({
   const [period, setPeriod] = useState('all');
   const visible = period === 'recent' ? data.slice(-12) : data;
   return (
-    <div className={`price-chart ${compact ? 'compact' : ''}`} dir="ltr">
+    <div {...ui(`price-chart ${compact ? 'compact' : ''}`)} dir="ltr">
       {!compact && (
-        <div className="chart-tools" dir="rtl">
-          <div className="segmented">
+        <div
+          data-ui="chart-tools"
+          className="flex items-center justify-between [padding-top:0] [padding-right:22px] [padding-bottom:12px] [padding-left:22px] [gap:10px] [@media(width<=640px)]:[padding-right:16px] [@media(width<=640px)]:[padding-left:16px] [&_>_[data-ui~='muted']]:[font-size:var(--text-xs)] [&_>_[data-ui~='muted']]:[color:#66758a]"
+          dir="rtl"
+        >
+          <div
+            data-ui="segmented"
+            className="inline-flex [background:#f5f7f9] [padding-top:3px] [padding-right:3px] [padding-bottom:3px] [padding-left:3px] [border-radius:7px] [gap:3px] [&_button]:[font-size:var(--text-xs)] [&_button]:[color:#66758a] [&_button]:[padding-top:4px] [&_button]:[padding-right:9px] [&_button]:[padding-bottom:4px] [&_button]:[padding-left:9px] [&_button]:[border-radius:5px] [&_button[data-ui~='active']]:[background:white] [&_button[data-ui~='active']]:[box-shadow:0_1px_4px_#1829380d] [&_button[data-ui~='active']]:[color:#5e6c7d]"
+          >
             <button
               onClick={() => setPeriod('recent')}
-              className={period === 'recent' ? 'active' : ''}
+              {...ui(period === 'recent' ? 'active' : '')}
             >
               ۱۲ معاملهٔ اخیر
             </button>
-            <button onClick={() => setPeriod('all')} className={period === 'all' ? 'active' : ''}>
+            <button onClick={() => setPeriod('all')} {...ui(period === 'all' ? 'active' : '')}>
               همهٔ معاملات
             </button>
           </div>
-          <span className="muted">قیمت به تومان</span>
+          <span data-ui="muted" className="[color:var(--muted)]">
+            قیمت به تومان
+          </span>
         </div>
       )}
       <div ref={container} style={{ height }} role="img" aria-label="نمودار قیمت معاملات اخیر">

@@ -2,7 +2,8 @@
 export function allowedRoute(method: string, path: string): boolean {
   const routes: Record<string, RegExp[]> = {
     GET: [
-      /^p2p\/(orders|payments)$/,
+      /^payments(\/config|\/[a-zA-Z0-9-]+)?$/,
+      /^p2p\/(orders|payments|market)$/,
       /^crypto\/(assets|deposits|withdrawals)$/,
       /^me$/,
       /^wallet$/,
@@ -18,6 +19,8 @@ export function allowedRoute(method: string, path: string): boolean {
       /^auction\/orders$/,
     ],
     POST: [
+      /^payments$/,
+      /^payments\/[a-zA-Z0-9-]+\/confirm$/,
       /^p2p\/(orders|reserve)$/,
       /^p2p\/orders\/[a-zA-Z0-9-]+\/cancel$/,
       /^p2p\/payments\/[a-zA-Z0-9-]+\/(receipt|confirm|dispute)$/,

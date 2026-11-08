@@ -24,6 +24,7 @@ test('reservation deadline stops at zero and receipts have bounded raster format
 test('P2P gateway permits customer workflow and excludes admin review and arbitrary paths', () => {
   for (const [method, path] of [
     ['GET', 'p2p/orders'],
+    ['GET', 'p2p/market'],
     ['GET', 'p2p/payments'],
     ['POST', 'p2p/orders'],
     ['POST', 'p2p/reserve'],

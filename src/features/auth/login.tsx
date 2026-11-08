@@ -1,4 +1,6 @@
 'use client';
+import { ui } from '@/lib/ui-styles';
+
 import Link from 'next/link';
 import { OTPInput } from 'input-otp';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -62,7 +64,10 @@ export function Login() {
   const verify = async (value: string) => {
     const completedCode = digits(value);
     if (!challenge || busy || verifying.current) return;
-    if (!/^[0-9]{6}$/.test(completedCode)) { setError('کد تأیید باید ۶ رقم باشد.'); return; }
+    if (!/^[0-9]{6}$/.test(completedCode)) {
+      setError('کد تأیید باید ۶ رقم باشد.');
+      return;
+    }
     verifying.current = true;
     setBusy(true);
     setError('');
@@ -86,18 +91,37 @@ export function Login() {
     else if (!busy) await send();
   };
   return (
-    <div className="login-layout">
-      <div className="login-form-side">
-        <Link href="/login" className="brand">
-          <span className="brand-mark">
+    <div
+      data-ui="login-layout"
+      className="[min-height:100vh] grid [grid-template-columns:1fr_1fr] [background:white] [@media(width<=800px)]:[grid-template-columns:1fr]"
+    >
+      <div
+        data-ui="login-form-side"
+        className="flex flex-col [padding-top:46px] [padding-right:60px] [padding-bottom:22px] [padding-left:60px] [min-height:100vh] [@media(width<=640px)]:[padding-top:30px] [@media(width<=640px)]:[padding-right:24px] [@media(width<=640px)]:[padding-bottom:20px] [@media(width<=640px)]:[padding-left:24px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-top:32px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-right:32px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-bottom:32px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-left:32px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-top:40px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-right:40px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-bottom:40px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-left:40px] [@media(width<=800px)]:[min-height:100dvh] [&_>_[data-ui~='brand']]:[padding-top:0] [&_>_[data-ui~='brand']]:[padding-right:0] [&_>_[data-ui~='brand']]:[padding-bottom:0] [&_>_[data-ui~='brand']]:[padding-left:0] [@media(width<=800px)]:[&_>_[data-ui~='brand']]:[align-self:center]"
+      >
+        <Link
+          href="/login"
+          data-ui="brand"
+          className="flex items-center [gap:11px] [padding-top:0] [padding-right:14px] [padding-bottom:0] [padding-left:14px] [font-size:22px] [font-weight:850] [letter-spacing:-0.5px] [color:#1c3431] [line-height:1.5] [@media(width<=1250px)]:[padding-right:10px] [@media(width<=1250px)]:[padding-left:10px] [@media(width<=1250px)]:[font-size:20px] [&_small]:block [&_small]:[letter-spacing:2.7px] [&_small]:[font-size:var(--text-xs)] [&_small]:font-semibold [&_small]:[color:#9aa3af] [&_small]:[margin-top:2px]"
+        >
+          <span
+            data-ui="brand-mark"
+            className="[width:37px] [height:37px] [border-radius:11px] [background:var(--accent)] [color:white] grid place-items-center [box-shadow:0_5px_12px_#079a7c15] [@media(width<=1000px)]:[width:32px] [@media(width<=1000px)]:[height:32px]"
+          >
             <ChartNoAxesCombined size={23} />
           </span>
           <span>
             مارکت‌بات<small>MARKETBOT</small>
           </span>
         </Link>
-        <div className="login-form-wrap">
-          <span className="login-symbol">
+        <div
+          data-ui="login-form-wrap"
+          className="[max-width:350px] [width:100%] mt-auto mr-auto [margin-bottom:auto] ml-auto [padding-top:70px] [padding-right:0] [padding-bottom:70px] [padding-left:0] [@media(width<=800px)]:[max-width:360px] [@media(width<=640px)]:[padding-top:60px] [@media(width<=640px)]:[padding-bottom:60px] [&_h1]:[font-size:25px] [&_h1]:[letter-spacing:-0.7px] [&_>_p]:[font-size:var(--text-sm)] [&_>_p]:[color:#66758a] [&_>_p]:[margin-top:10px] [&_>_p]:[margin-right:0] [&_>_p]:[margin-bottom:31px] [&_>_p]:[margin-left:0] [&_>_p]:[line-height:2] [&_[data-ui~='field']_>_input]:[font-size:var(--text-base)] [&_[data-ui~='field']_>_input]:[padding-top:13px] [&_[data-ui~='field']_>_input]:[padding-right:15px] [&_[data-ui~='field']_>_input]:[padding-bottom:13px] [&_[data-ui~='field']_>_input]:[padding-left:15px] [&_[data-ui~='button']]:[min-height:45px] [&_[data-ui~='button']_svg]:mr-auto"
+        >
+          <span
+            data-ui="login-symbol"
+            className="[width:49px] [height:49px] grid place-items-center [background:#ecf8f2] [border-top-width:1px] [border-top-style:solid] [border-top-color:#dcefe4] [border-right-width:1px] [border-right-style:solid] [border-right-color:#dcefe4] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:#dcefe4] [border-left-width:1px] [border-left-style:solid] [border-left-color:#dcefe4] [color:var(--accent)] [border-radius:13px] [margin-bottom:22px]"
+          >
             <Smartphone size={25} />
           </span>
           <h1>{challenge ? 'تأیید شمارهٔ موبایل' : 'به مارکت‌بات خوش آمدید'}</h1>
@@ -106,7 +130,12 @@ export function Login() {
               ? `کد ۶ رقمی ارسال‌شده به ${phone} را وارد کنید.`
               : 'با شمارهٔ موبایل خود وارد فضای معاملات شوید.'}
           </p>
-          <form noValidate className="form-stack" onSubmit={submit}>
+          <form
+            noValidate
+            data-ui="form-stack"
+            className="flex flex-col [gap:19px]"
+            onSubmit={submit}
+          >
             {challenge ? (
               <>
                 <Field label="کد تأیید">
@@ -134,24 +163,37 @@ export function Login() {
                     }}
                     pasteTransformer={(value) => digits(value).replace(/[^0-9]/g, '')}
                     render={({ slots }) => (
-                      <div className="otp-slots" dir="ltr" aria-hidden="true">
+                      <div
+                        data-ui="otp-slots"
+                        className="grid [grid-template-columns:repeat(6,_minmax(0,_1fr))] [gap:clamp(6px,_2vw,_12px)] [width:100%]"
+                        dir="ltr"
+                        aria-hidden="true"
+                      >
                         {slots.map((slot, index) => (
                           <div
                             key={index}
-                            className={`otp-slot${slot.isActive ? ' active' : ''}${error ? ' invalid' : ''}`}
+                            {...ui(
+                              `otp-slot${slot.isActive ? ' active' : ''}${error ? ' invalid' : ''}`,
+                            )}
                           >
                             {slot.char}
-                            {slot.hasFakeCaret && <span className="otp-caret" />}
+                            {slot.hasFakeCaret && (
+                              <span
+                                data-ui="otp-caret"
+                                className="absolute [width:2px] [height:26px] [background:var(--accent)] [animation:otp-blink_1s_step-end_infinite] [@media(prefers-reduced-motion:_reduce)]:[animation:none]"
+                              />
+                            )}
                           </div>
                         ))}
                       </div>
                     )}
                   />
                 </Field>
-                <div className="otp-links">
+                <div data-ui="otp-links" className="flex items-center justify-between">
                   <button
                     type="button"
-                    className="text-link"
+                    data-ui="text-link"
+                    className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
                     disabled={busy}
                     onClick={() => {
                       setChallenge('');
@@ -164,7 +206,8 @@ export function Login() {
                   </button>
                   <button
                     type="button"
-                    className="text-link"
+                    data-ui="text-link"
+                    className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
                     disabled={wait > 0 || busy}
                     onClick={send}
                   >
@@ -196,12 +239,18 @@ export function Login() {
               </Field>
             )}
             {error && (
-              <p id="login-error" className="inline-error" role="alert">
+              <p
+                id="login-error"
+                data-ui="inline-error"
+                className="[font-size:var(--text-xs)] [color:var(--error-text)] [background:#fff1f3] [padding-top:10px] [padding-right:12px] [padding-bottom:10px] [padding-left:12px] [border-radius:7px] [line-height:1.9] [&_[data-ui~='text-link']]:[color:var(--error-text)]"
+                role="alert"
+              >
                 {error}
               </p>
             )}
             <button
-              className="button primary full"
+              data-ui="button primary full"
+              className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
               disabled={busy || (Boolean(challenge) && code.length !== 6)}
               type="submit"
             >
@@ -209,25 +258,54 @@ export function Login() {
               <ArrowLeft size={17} />
             </button>
           </form>
-          <div className="login-security">
+          <div
+            data-ui="login-security"
+            className="flex items-center justify-center [gap:7px] [color:#66758a] [font-size:var(--text-xs)] [margin-top:23px]"
+          >
             <ShieldCheck size={17} />
             <span>ورود با کد یک‌بارمصرف، بدون نیاز به رمز عبور</span>
           </div>
           {demo && (
-            <div className="login-demo">
+            <div
+              data-ui="login-demo"
+              className="[margin-top:25px] [border-top-width:1px] [border-top-style:solid] [border-top-color:var(--line)] [padding-top:20px] [&_p]:[font-size:var(--text-xs)] [&_p]:[color:#97a3ae] [&_p]:[margin-bottom:10px]"
+            >
               <p>محیط نمایشی فعال است. برای دیدن طراحی بدون ورود:</p>
-              <Link className="button secondary full" href="/">
+              <Link
+                data-ui="button secondary full"
+                className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
+                href="/"
+              >
                 مشاهدهٔ پنل نمونه
               </Link>
             </div>
           )}
         </div>
-        <footer className="login-footer">مارکت‌بات · کیف پول و بازار معاملات</footer>
+        <footer
+          data-ui="login-footer"
+          className="text-center [color:#66758a] [font-size:var(--text-xs)]"
+        >
+          مارکت‌بات · کیف پول و بازار معاملات
+        </footer>
       </div>
-      <aside className="login-story">
-        <div className="story-grid" />
-        <div className="story-content">
-          <span className="story-eyebrow">یک فضای روشن برای تصمیم‌های بهتر</span>
+      <aside
+        data-ui="login-story"
+        className="relative overflow-hidden [background:#12382f] [color:#e5f4ec] flex flex-col justify-center [padding-top:65px] [padding-right:70px] [padding-bottom:65px] [padding-left:70px] [@media(width<=800px)]:hidden [@media(width<=1000px)]:[padding-top:40px] [@media(width<=1000px)]:[padding-right:30px] [@media(width<=1000px)]:[padding-bottom:40px] [@media(width<=1000px)]:[padding-left:30px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-top:50px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-right:40px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-bottom:50px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-left:40px] [&:before]:[content:''] [&:before]:absolute [&:before]:[width:750px] [&:before]:[height:750px] [&:before]:[top:-460px] [&:before]:[left:-250px] [&:before]:[background:radial-gradient(circle,_#3a98745e,_transparent_65%)] [&:before]:pointer-events-none"
+      >
+        <div
+          data-ui="story-grid"
+          className="absolute [inset:0] [background-image:linear-gradient(#ffffff03_1px,_transparent_1px),_linear-gradient(90deg,_#ffffff03_1px,_transparent_1px)] [background-size:60px_60px] [mask-image:linear-gradient(transparent,_black,_transparent)]"
+        />
+        <div
+          data-ui="story-content"
+          className="relative [max-width:440px] mt-auto mr-auto [margin-bottom:auto] ml-auto [&_h2]:[font-size:42px] [&_h2]:[line-height:1.8] [&_h2]:font-bold [&_h2]:[letter-spacing:-1px] [&_h2]:[margin-top:19px] [&_h2]:[margin-right:0] [&_h2]:[margin-bottom:14px] [&_h2]:[margin-left:0] [&_>_p]:[font-size:var(--text-sm)] [&_>_p]:[line-height:2.4] [&_>_p]:[color:#81a998] [@media(width<=1000px)]:[&_h2]:[font-size:29px] [@media(width>1000px)]:[@media(width<=1250px)]:[&_h2]:[font-size:35px] [@media(width<=1000px)]:[&_>_p]:[font-size:var(--text-xs)]"
+        >
+          <span
+            data-ui="story-eyebrow"
+            className="[font-size:var(--text-xs)] [color:#9ec9b5] [letter-spacing:0.2px]"
+          >
+            یک فضای روشن برای تصمیم‌های بهتر
+          </span>
           <h2>
             دید کامل به بازار.
             <br />
@@ -238,19 +316,32 @@ export function Login() {
             <br />
             همه چیز در یک فضای ساده و منظم.
           </p>
-          <div className="story-portfolio">
-            <span className="story-wallet-icon">
+          <div
+            data-ui="story-portfolio"
+            className="flex items-center [gap:13px] [padding-top:21px] [padding-right:18px] [padding-bottom:21px] [padding-left:18px] [background:#ffffff08] [border-top-width:1px] [border-top-style:solid] [border-top-color:#ffffff10] [border-right-width:1px] [border-right-style:solid] [border-right-color:#ffffff10] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:#ffffff10] [border-left-width:1px] [border-left-style:solid] [border-left-color:#ffffff10] [border-radius:13px] [margin-top:45px] [@media(width<=1000px)]:[padding-top:18px] [@media(width<=1000px)]:[padding-right:13px] [@media(width<=1000px)]:[padding-bottom:18px] [@media(width<=1000px)]:[padding-left:13px] [&_>_div]:flex [&_>_div]:flex-col [&_>_div]:[gap:6px] [&_>_div_>_span]:[font-size:var(--text-xs)] [&_>_div_>_span]:[color:#89b09d] [&_strong]:[font-size:var(--text-xs)] [&_strong]:font-medium [&_strong]:[letter-spacing:0.2px]"
+          >
+            <span
+              data-ui="story-wallet-icon"
+              className="[width:40px] [height:40px] [background:#ffffff0b] [border-radius:10px] grid place-items-center [color:#9fd7bb]"
+            >
               <Wallet size={21} />
             </span>
             <div>
               <span>تمام دارایی‌ها، یک تصویر روشن</span>
               <strong>کیف پول · بازار · معاملات</strong>
             </div>
-            <span className="story-check">
+            <span
+              data-ui="story-check"
+              className="mr-auto [width:26px] [height:26px] [border-radius:50%] [background:#a4d8bf1c] grid place-items-center [color:#91d5b4]"
+            >
               <Check size={18} />
             </span>
           </div>
-          <div className="story-chart" aria-hidden="true">
+          <div
+            data-ui="story-chart"
+            className="[margin-top:18px] [opacity:0.6] [&_svg]:block [&_svg]:[width:100%] [&_svg]:[height:auto]"
+            aria-hidden="true"
+          >
             <svg viewBox="0 0 480 140" fill="none">
               <defs>
                 <linearGradient id="story-fill" x1="0" y1="0" x2="0" y2="1">
@@ -269,7 +360,10 @@ export function Login() {
               />
             </svg>
           </div>
-          <div className="story-feature-row">
+          <div
+            data-ui="story-feature-row"
+            className="flex [gap:25px] [font-size:var(--text-xs)] [color:#90b4a1] [margin-top:30px] [@media(width<=1000px)]:[gap:15px] [&_>_span]:flex [&_>_span]:items-center [&_>_span]:[gap:6px]"
+          >
             <span>
               <Check size={15} />
               طراحی برای دسکتاپ
@@ -280,8 +374,14 @@ export function Login() {
             </span>
           </div>
         </div>
-        <div className="story-footer">
-          <span className="brand-mark">
+        <div
+          data-ui="story-footer"
+          className="relative flex items-center justify-center [gap:10px] [font-size:var(--text-xs)] [color:#719e88] [margin-top:50px] [&_[data-ui~='brand-mark']]:[width:25px] [&_[data-ui~='brand-mark']]:[height:25px] [&_[data-ui~='brand-mark']]:[font-size:var(--text-xs)] [&_[data-ui~='brand-mark']]:[background:#356d55]"
+        >
+          <span
+            data-ui="brand-mark"
+            className="[width:37px] [height:37px] [border-radius:11px] [background:var(--accent)] [color:white] grid place-items-center [box-shadow:0_5px_12px_#079a7c15] [@media(width<=1000px)]:[width:32px] [@media(width<=1000px)]:[height:32px]"
+          >
             <ChartNoAxesCombined size={18} />
           </span>
           <span>ساخته‌شده برای تجربه‌ای دقیق‌تر</span>

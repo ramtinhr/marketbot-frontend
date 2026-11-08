@@ -33,6 +33,8 @@ export async function api<T>(
   return body;
 }
 const messages: Record<string, string> = {
+  payment_rate_limit: 'تعداد درخواست‌های پرداخت زیاد است؛ کمی بعد دوباره تلاش کنید.',
+  gateway_unavailable: 'درگاه پرداخت در دسترس نیست؛ کمی بعد دوباره تلاش کنید.',
   market_short: 'درخواست کافی برای این مبلغ موجود نیست؛ مبلغ کمتری وارد کنید.',
   reservation_expired: 'مهلت رزرو تمام شده یا فیش قبلاً ثبت شده است. وضعیت را بازخوانی کنید.',
   invalid_receipt: 'تصویر فیش و شماره پیگیری معتبر لازم است.',
@@ -56,7 +58,8 @@ const messages: Record<string, string> = {
   api_unavailable: 'ارتباط با سرویس برقرار نشد. دوباره تلاش کنید.',
   demo_readonly: 'در محیط نمایشی تراکنش واقعی انجام نمی‌شود.',
   invalid_sheba: 'شمارهٔ شبا معتبر نیست.',
-  invalid_bank_account: 'عنوان حساب (حداکثر ۸۰ نویسه) و نام صاحب حساب (حداکثر ۱۲۰ نویسه) الزامی است.',
+  invalid_bank_account:
+    'عنوان حساب (حداکثر ۸۰ نویسه) و نام صاحب حساب (حداکثر ۱۲۰ نویسه) الزامی است.',
   bank_account_exists: 'این حساب بانکی قبلاً ثبت شده است.',
   invalid_quantity: 'مقدار باید عدد مثبت با حداکثر ۸ رقم اعشار باشد.',
   invalid_price: 'قیمت باید عدد مثبت با حداکثر ۸ رقم اعشار باشد.',

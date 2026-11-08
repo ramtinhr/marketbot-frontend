@@ -58,3 +58,23 @@ test('crypto gateway permits customer funding routes but never admin review or a
   ])
     assert.equal(allowedRoute(method, path), false, `${method} ${path}`);
 });
+
+test('payment gateway exposes only customer use cases and keeps webhook secret paths private', () => {
+  for (const [method, path] of [
+    ['GET', 'payments/config'],
+    ['GET', 'payments'],
+    ['GET', 'payments/abc-123'],
+    ['POST', 'payments'],
+    ['POST', 'payments/abc-123/confirm'],
+  ])
+    assert.equal(allowedRoute(method, path), true, `${method} ${path}`);
+  for (const [method, path] of [
+    ['POST', 'payments/webhook/payment_intents'],
+    ['POST', 'payments/config'],
+    ['DELETE', 'payments/abc-123'],
+    ['GET', 'payments/abc-123/confirm'],
+    ['POST', 'payment-intents'],
+    ['POST', 'payments/../confirm'],
+  ])
+    assert.equal(allowedRoute(method, path), false, `${method} ${path}`);
+});

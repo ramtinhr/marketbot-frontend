@@ -161,6 +161,20 @@ try {
   assert.equal((await fetch(origin + '/api/gateway/p2p/payments/one/review', {
     method: 'POST', headers: { Origin: origin, Cookie: cookieHeader },
   })).status, 404);
+  const payment = await fetch(origin + '/api/gateway/payments', {
+    method: 'POST',
+    headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json', 'Idempotency-Key': 'payment-test-retry-key' },
+    body: JSON.stringify({ amount: '10000', provider: 'payment_intents' }),
+  });
+  assert.equal(payment.status, 200);
+  assert.equal(receivedKey, 'payment-test-retry-key');
+  assert.equal(receivedAuthorization, `Bearer ${token}`);
+  assert.equal((await fetch(origin + '/api/gateway/payments/one/confirm', {
+    method: 'POST', headers: { Origin: origin, Cookie: cookieHeader },
+  })).status, 200);
+  assert.equal((await fetch(origin + '/api/gateway/payments/webhook/payment_intents', {
+    method: 'POST', headers: { Origin: origin, Cookie: cookieHeader },
+  })).status, 404);
   const logout = await fetch(origin + '/api/gateway/auth/logout', {
     method: 'POST',
     headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json' },

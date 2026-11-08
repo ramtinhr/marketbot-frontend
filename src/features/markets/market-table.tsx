@@ -1,4 +1,6 @@
 'use client';
+import { ui } from '@/lib/ui-styles';
+
 import Link from 'next/link';
 import { ArrowUpLeft, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -34,9 +36,9 @@ export function MarketRow({ symbol, watchlist = false }: { symbol: string; watch
   return (
     <tr>
       <td>
-        <div className="market-asset-cell">
+        <div data-ui="market-asset-cell" className="flex items-center [gap:8px]">
           <button
-            className={`favorite ${favorite ? 'selected' : ''}`}
+            {...ui(`favorite ${favorite ? 'selected' : ''}`)}
             aria-label={favorite ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
             aria-pressed={favorite}
             onClick={toggle}
@@ -47,10 +49,19 @@ export function MarketRow({ symbol, watchlist = false }: { symbol: string; watch
         </div>
       </td>
       <td>
-        {data?.summary ? <Money value={data.summary.close} /> : <span className="muted">—</span>}
+        {data?.summary ? (
+          <Money value={data.summary.close} />
+        ) : (
+          <span data-ui="muted" className="[color:var(--muted)]">
+            —
+          </span>
+        )}
       </td>
       <td>{data?.summary ? <Change value={data.summary.change_pct} /> : '—'}</td>
-      <td className="volume-cell">
+      <td
+        data-ui="volume-cell"
+        className="[&_small]:[font-size:var(--text-xs)] [&_small]:[color:#a3acb8]"
+      >
         {data?.summary ? (
           <>
             <bdi>{number(data.summary.volume, 2)}</bdi> <small>{base}</small>
@@ -59,15 +70,24 @@ export function MarketRow({ symbol, watchlist = false }: { symbol: string; watch
           '—'
         )}
       </td>
-      <td className="spark-cell">
+      <td
+        data-ui="spark-cell"
+        className="[width:100px] [min-width:80px] [padding-right:8px]! [padding-left:8px]!"
+      >
         {points.length > 1 ? (
           <PriceChart compact height={42} data={points} />
         ) : (
-          <span className="muted">—</span>
+          <span data-ui="muted" className="[color:var(--muted)]">
+            —
+          </span>
         )}
       </td>
       <td>
-        <Link href={`/trade/${symbol}`} className="trade-link">
+        <Link
+          href={`/trade/${symbol}`}
+          data-ui="trade-link"
+          className="[font-size:var(--text-xs)] inline-flex [gap:4px] items-center [color:#07806a] whitespace-nowrap"
+        >
           معامله <ArrowUpLeft size={14} />
         </Link>
       </td>
@@ -82,17 +102,35 @@ export function MarketTable({
   watchlist?: boolean;
 }) {
   return (
-    <div className="table-scroll">
-      <table className="data-table market-table">
+    <div data-ui="table-scroll" className="[overflow-x:auto]">
+      <table
+        data-ui="data-table market-table"
+        className="[border-collapse:collapse] [width:100%] whitespace-nowrap text-right [@media(width<=640px)]:[min-width:420px] [&_th]:[font-size:var(--text-xs)] [&_th]:font-semibold [&_th]:[color:#66758a] [&_th]:[padding-top:12px] [&_th]:[padding-right:13px] [&_th]:[padding-bottom:12px] [&_th]:[padding-left:13px] [&_th]:[background:#fcfcfd] [&_th]:[border-top-width:1px] [&_th]:[border-top-style:solid] [&_th]:[border-top-color:#f0f2f5] [&_th]:[border-bottom-width:1px] [&_th]:[border-bottom-style:solid] [&_th]:[border-bottom-color:#f0f2f5] [&_td]:[padding-top:var(--space-4)] [&_td]:[padding-right:13px] [&_td]:[padding-bottom:var(--space-4)] [&_td]:[padding-left:13px] [&_td]:[font-size:var(--text-sm)]! [&_td]:[border-bottom-width:1px] [&_td]:[border-bottom-style:solid] [&_td]:[border-bottom-color:#f0f2f5] [&_td]:[color:#566273] [&_tbody_tr:last-child_td]:[border-bottom-width:0] [&_tbody_tr:last-child_td]:[border-bottom-style:none] [&_tbody_tr:last-child_td]:[border-bottom-color:currentColor] [&_tbody_tr:hover]:[background:#fcfdfd] [&_td_[data-ui~='money']]:[color:#3a4859] [&_td_[data-ui~='money']]:[font-size:var(--text-sm)]! [&_td_[data-ui~='money']]:font-medium [&_td_small]:[font-size:var(--text-xs)] [&_td_small]:[color:#66758a] [@media(width>1650px)]:[&_td]:[padding-top:20px] [@media(width>1650px)]:[&_td]:[padding-bottom:20px] [&_[data-ui~='data-table']_th]:[padding-right:14px] [&_[data-ui~='data-table']_th]:[padding-left:14px] [&_td:first-child]:[padding-right:20px] [&_th:first-child]:[padding-right:20px] [&_td:last-child]:[padding-left:20px] [&_th:last-child]:[padding-left:20px] [&_[data-ui~='asset-label']]:[min-width:91px] [&_[data-ui~='asset-label']]:[gap:8px] [&_[data-ui~='asset-icon']]:[width:29px] [&_[data-ui~='asset-icon']]:[height:29px] [&_[data-ui~='asset-icon']]:[font-size:21px] [&_[data-ui~='asset-label']_strong]:[font-size:var(--text-sm)] [&_[data-ui~='asset-label']_strong]:font-semibold [&_[data-ui~='money']]:[font-size:var(--text-sm)]! [&_[data-ui~='money']_small]:[font-size:var(--text-xs)] [&_[data-ui~='change']]:[font-size:var(--text-xs)] [@media(width>1650px)]:[&_td]:[padding-right:20px] [@media(width>1650px)]:[&_td]:[padding-left:20px] [@media(width>1650px)]:[&_th]:[padding-right:20px] [@media(width>1650px)]:[&_th]:[padding-left:20px] [@media(width<=640px)]:[&_[data-ui~='asset-label']]:[min-width:80px] [@media(width<=640px)]:[&_[data-ui~='spark-cell']]:hidden [@media(width<=640px)]:[&_[data-ui~='volume-cell']]:hidden"
+      >
         <thead>
           <tr>
             <th>نام ارز</th>
             <th>آخرین قیمت</th>
             <th>تغییر ۲۴ ساعته</th>
-            <th className="volume-cell">حجم معاملات</th>
-            <th className="spark-cell">روند اخیر</th>
+            <th
+              data-ui="volume-cell"
+              className="[&_small]:[font-size:var(--text-xs)] [&_small]:[color:#a3acb8]"
+            >
+              حجم معاملات
+            </th>
+            <th
+              data-ui="spark-cell"
+              className="[width:100px] [min-width:80px] [padding-right:8px]! [padding-left:8px]!"
+            >
+              روند اخیر
+            </th>
             <th>
-              <span className="sr-only">عملیات</span>
+              <span
+                data-ui="sr-only"
+                className="absolute [width:1px] [height:1px] [margin-top:-1px] [margin-right:-1px] [margin-bottom:-1px] [margin-left:-1px] overflow-hidden [clip:rect(0,_0,_0,_0)]"
+              >
+                عملیات
+              </span>
             </th>
           </tr>
         </thead>

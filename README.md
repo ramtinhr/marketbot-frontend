@@ -51,7 +51,7 @@ src/
   components/          Shared UI, accessible dialogs, chart, desktop shell
   providers/           Query cache, preview configuration, notifications
   lib/                 Domain contracts, API client, query hooks, formatting
-  styles/              Base tokens, shell, component and feature design layers
+  app/globals.css      Tailwind entry, theme tokens, document defaults and keyframes
 scripts/
   check-gateway.mjs    Isolated integration test for the real Next.js gateway
 ```
@@ -60,6 +60,16 @@ Routes: `/`, `/markets`, `/trade/USDT_IRT`, `/wallet`, `/orders`,
 `/bank-accounts`, `/settings`, and `/login`. Browser navigation and refresh use
 native Next.js routing. Desktop uses a persistent sidebar; smaller screens use
 an off-canvas menu and page layouts adapt without stretching the mini app.
+
+Styling uses Tailwind CSS v4 through PostCSS. Components use utility classes;
+`lib/ui-styles.ts` holds shared conditional recipes. `data-ui` attributes provide
+structural and state hooks for Tailwind descendant variants. Keep utility strings
+complete so Tailwind can discover them. Dynamic bank colors and chart values use
+CSS variables or inline styles.
+
+Server state is managed by TanStack Query (caching, polling, mutations and
+invalidation). React Context shares demo configuration and notifications; local
+form and dialog state stays in React components.
 
 ## Backend contract and sessions
 
@@ -222,10 +232,21 @@ adding these workflows.
 
 ## Rial peer payments
 
-`/p2p` (also linked from Wallet) supports funded receive requests, exclusive
+`/p2p` (also linked from Wallet) opens a responsive market of available requests, with amount filtering, sorting and explicit reservation of a chosen request. Separate sections contain request creation and personal payment/order history. Deploy the API with `GET /v1/p2p/market` support before this frontend.
+
+The flow supports funded receive requests, exclusive
 2-minute payment selections across one or several requests, separate bank receipts,
 receiver confirmation, disputes and 30-minute escalation to the existing admin
 queue. This market shares the Mini App's orders, balances and reservation lock.
 Run the API's `006_customer_p2p` migration with `npm run migrate` before deploying
 the updated frontend. Customer API routes and operational details are documented
 in `marketbot-api/docs/customer-p2p.md`. Demo mode stays read-only.
+
+Bank deposits use the API's provider-neutral `/v1/payments` routes. The wallet
+form loads gateway availability/limits, sends a durable customer-scoped retry
+key, and opens the checkout URL. Returning to `/wallet?payment=<local UUID>`
+verifies the owned payment through the API. Bank deposit history supports status
+checks and resuming checkout. Demo mode sends no payment requests. Set payment
+credentials and `PAYMENT_RETURN_URL` only on marketbot-api; see its
+`docs/customer-payments.md` for migration 007 and webhook setup. The frontend
+needs no payment gateway credentials.
