@@ -1,4 +1,6 @@
 'use client';
+import { AuctionOffers } from './auction-offers';
+import { useTradingLive } from '@/lib/use-trading-live';
 import { Select, SelectOption } from '@/components/select';
 import { ui } from '@/lib/ui-styles';
 
@@ -33,6 +35,7 @@ import { PriceChart } from '@/components/price-chart';
 import { OrderTable } from '@/features/orders/order-table';
 import type { Order } from '@/lib/types';
 export function Trading({ symbol }: { symbol: string }) {
+  useTradingLive(symbol);
   const market = useMarket(symbol);
   const wallet = useWallet();
   const normalOrders = useOrders();
@@ -69,8 +72,8 @@ export function Trading({ symbol }: { symbol: string }) {
   );
   const estimate = Number(quantityValue) * effectivePrice;
   const points =
-    market.data?.trades
-      .slice()
+    (type === 'auction' ? auction.data?.trades : market.data?.trades)
+      ?.slice()
       .sort((a, b) => a.executed_at.localeCompare(b.executed_at))
       .map((t) => ({
         label: new Date(t.executed_at).toLocaleTimeString('fa-IR', {
@@ -193,9 +196,9 @@ export function Trading({ symbol }: { symbol: string }) {
             }
           />
           <State
-            loading={market.isPending}
-            error={market.error}
-            retry={() => market.refetch()}
+            loading={type === 'auction' ? auction.isPending : market.isPending}
+            error={type === 'auction' ? auction.error : market.error}
+            retry={() => (type === 'auction' ? auction.refetch() : market.refetch())}
             empty={!points.length}
           >
             <PriceChart height={300} data={points} />
@@ -251,7 +254,13 @@ export function Trading({ symbol }: { symbol: string }) {
               data-ui="book-mid"
               className="flex justify-center items-center [gap:7px] [padding-top:15px] [padding-right:8px] [padding-bottom:15px] [padding-left:8px] [margin-top:8px] [margin-right:0] [margin-bottom:8px] [margin-left:0] [border-block:1px_solid_var(--line)] [color:var(--accent)] [&_strong]:[font-size:var(--text-base)] [&_strong]:font-semibold [&_small]:[font-size:var(--text-xs)] [&_small]:[color:var(--muted)]"
             >
-              <strong>{summary ? number(summary.close) : '—'}</strong>
+              <strong>
+                {type === 'auction'
+                  ? number(auction.data?.book.last_price || 0)
+                  : summary
+                    ? number(summary.close)
+                    : '—'}
+              </strong>
               <ArrowLeftRight size={15} />
               <small>تومان</small>
             </div>
@@ -415,7 +424,13 @@ export function Trading({ symbol }: { symbol: string }) {
             <button
               type="submit"
               {...ui(`button full ${side === 'sell' ? 'sell-button' : 'primary'}`)}
-              disabled={market.isPending || wallet.isPending || !!wallet.error}
+              disabled={
+                (type === 'auction'
+                  ? auction.isPending || !!auction.error
+                  : market.isPending || !!market.error) ||
+                wallet.isPending ||
+                !!wallet.error
+              }
             >
               {side === 'buy' ? 'خرید' : 'فروش'} {assetName(base)}
             </button>
@@ -454,6 +469,13 @@ export function Trading({ symbol }: { symbol: string }) {
           </State>
         </Panel>
       </div>
+      {type === 'auction' && (
+        <AuctionOffers
+          symbol={symbol}
+          offers={auction.data?.offers ?? []}
+          orders={auctionOrders.data?.orders ?? []}
+        />
+      )}
       <Modal
         open={review}
         onOpenChange={setReview}

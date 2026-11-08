@@ -156,13 +156,43 @@ configuration; this work has not been deployed to production.
 ## GitHub CI/CD
 
 The workflows follow the sibling API/dashboard/miniapp infrastructure: GHCR
-images and manual SSH deployment to the shared Linux amd64 host. Production
-never pulls from a registry; the runner transfers the tested image over SSH.
+images and manual SSH deployment to the shared Linux amd64 host. Deploy has two
+methods: **source** (default) sends a small commit archive and builds on the host;
+**image** transfers the tested CI image over SSH as before. Neither needs GHCR
+credentials or a GitHub checkout key on the server.
 
-All CI checks, image builds, and manual deployments use GitHub-hosted
-`ubuntu-latest` runners. No self-hosted runner is required. Node 24 is installed
+CI and deployment orchestration use GitHub-hosted `ubuntu-latest` runners;
+source-mode image builds run on the production host. No self-hosted runner is required. Node 24 is installed
 by `actions/setup-node`; deployment connects to production using the configured
 SSH secrets.
+
+### Faster source deployment
+
+Run **Deploy** on `main` after CI passes, leaving `delivery=source`. This builds
+that workflow run's exact commit, not a moving branch; `image_tag` is ignored.
+Only committed source is uploaded. Local edits, `.git`, `node_modules`, and local
+env files are excluded. Runtime secrets are uploaded separately, outside the
+Docker build context. No server-side `git pull` or repository key is needed.
+
+The host needs Docker with BuildKit, Compose v2, Bash, tar/gzip, enough CPU/RAM
+and disk for a Next.js build, and access to Docker Hub and the npm registry.
+The first build downloads the base image and dependencies. Later builds reuse
+Docker layers, the npm download cache, and the Next.js build cache. Keep Docker's
+build cache between releases; pruning it makes the next build cold. Source
+transfer, server build, and activation durations are logged separately. This
+removes the large runner-to-server image upload; actual speed depends on the
+host's build resources and registry connectivity.
+
+The existing container serves traffic during upload/build. A failed build does
+not activate a release. Successful builds use the existing health check and
+rollback. Each build has a unique release tag, preserving previous images for
+rollback. Source mode rebuilds the commit on the host rather than deploying the
+identical CI image. Choose `delivery=image` when that identity is required or
+the host cannot build. For a source rollback, select image mode with an earlier
+successful CI image tag. Deploy remains manual; no release is triggered by this
+configuration change.
+
+### CI image delivery (fallback)
 
 Install `rsync` on both the runner and production host (`apt install rsync` on
 Ubuntu/Debian) to enable incremental image transfers. The first deployment seeds
@@ -221,8 +251,8 @@ Host. The sibling API's dashboard `WEB_DOMAIN` is a different app; this workflow
 does not change that proxy or provision a portal certificate. Set ingress trust
 to false unless the trusted proxy is configured. Demo mode is forced off.
 
-Run the **Deploy** workflow on `main`, selecting `sha-<full commit SHA>` from a
-successful CI run. `latest` is supported but explicit commit tags make releases
+For image delivery, run **Deploy** on `main` with `delivery=image`, selecting
+`sha-<full commit SHA>` from a successful CI run. `latest` is supported but explicit commit tags make releases
 easier to audit. Each deployment stores a private release directory and activates
 a content-specific release tag that survives transfer between Docker image stores.
 Compose waits for `/login` health before updating
@@ -231,8 +261,8 @@ First-deployment failure stops the failed service. This checks frontend readines
 it does not verify live SMS, payments, or all upstream API features. A single
 container restart can briefly interrupt traffic.
 
-The deployment job allows 360 minutes (6 hours) for slow image uploads over SSH,
-the maximum execution time for a GitHub-hosted runner. This replaces the earlier
+Image delivery retains the 360-minute (6-hour) job allowance for slow uploads
+over SSH, the maximum execution time for a GitHub-hosted runner. This replaces the earlier
 180-minute cutoff; GitHub still enforces its 6-hour limit. For
 example, transferring 235 MB at 40 kB/s takes about 98 minutes before image
 loading and activation. If a run ends with `The operation was canceled` during
@@ -267,3 +297,16 @@ checks and resuming checkout. Demo mode sends no payment requests. Set payment
 credentials and `PAYMENT_RETURN_URL` only on marketbot-api; see its
 `docs/customer-payments.md` for migration 007 and webhook setup. The frontend
 needs no payment gateway credentials.
+
+Trading uses the customer API's `/v1/orders`, `/v1/trades`, and `/v1/auction/*`
+endpoints. Exchange orders go through the existing Kafka exchange bridge and
+matching engine. `/api/live` proxies the authenticated WebSocket to
+`/v1/market/ws` using the server's runtime `MARKETBOT_API_URL`; the session stays
+in its HttpOnly cookie. The ingress must allow WebSocket upgrades on `/api/live`.
+Polling remains enabled to reconcile disconnects.
+
+Deploy the matching `marketbot-api` changes and run its `npm run migrate` before
+using trading. Migration `011_customer_trading` keeps the Mini App's existing
+auction tables and adds commit notifications. The Mini App hub change consumes
+those notifications too, so auction changes from either service reach both
+clients. Both services must use the same exchange database and Kafka topics.

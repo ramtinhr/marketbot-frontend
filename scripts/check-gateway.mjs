@@ -1,6 +1,8 @@
 // Exercise the real Next.js gateway against a disposable local API, never production.
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { createRequire } from 'node:module';
+const { WebSocketServer } = createRequire(import.meta.url)('next/dist/compiled/ws');
 import { spawn } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
 const token = 'disposable-test-session';
@@ -50,6 +52,18 @@ const mock = http.createServer(async (req, res) => {
     return;
   }
   res.end(JSON.stringify({ user: { id: 1 }, verified: true }));
+});
+const wsServer = new WebSocketServer({ noServer: true });
+mock.on('upgrade', (req, socket, head) => {
+  assert.equal(req.url, '/v1/market/ws');
+  assert.match(req.headers.cookie || '', /marketbot_customer_session=/);
+  wsServer.handleUpgrade(req, socket, head, (ws) => {
+    ws.on('message', (raw) => {
+      const msg = JSON.parse(String(raw));
+      assert.equal(msg.symbol, 'USDT_IRT');
+      ws.send(JSON.stringify({ type: 'depth', depth: { symbol: msg.symbol, bids: [], asks: [] } }));
+    });
+  });
 });
 await new Promise((resolve) => mock.listen(0, '127.0.0.1', resolve));
 const backendPort = mock.address().port;
@@ -152,29 +166,97 @@ try {
   );
   const p2p = await fetch(origin + '/api/gateway/p2p/orders', {
     method: 'POST',
-    headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json', 'Idempotency-Key': 'p2p-test-retry-key' },
+    headers: {
+      Origin: origin,
+      Cookie: cookieHeader,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': 'p2p-test-retry-key',
+    },
     body: JSON.stringify({ amount: '1000000', description: 'disposable gateway test' }),
   });
   assert.equal(p2p.status, 200);
   assert.equal(receivedKey, 'p2p-test-retry-key');
   assert.equal(receivedAuthorization, `Bearer ${token}`);
-  assert.equal((await fetch(origin + '/api/gateway/p2p/payments/one/review', {
-    method: 'POST', headers: { Origin: origin, Cookie: cookieHeader },
-  })).status, 404);
+  assert.equal(
+    (
+      await fetch(origin + '/api/gateway/p2p/payments/one/review', {
+        method: 'POST',
+        headers: { Origin: origin, Cookie: cookieHeader },
+      })
+    ).status,
+    404,
+  );
   const payment = await fetch(origin + '/api/gateway/payments', {
     method: 'POST',
-    headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json', 'Idempotency-Key': 'payment-test-retry-key' },
+    headers: {
+      Origin: origin,
+      Cookie: cookieHeader,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': 'payment-test-retry-key',
+    },
     body: JSON.stringify({ amount: '10000', provider: 'payment_intents' }),
   });
   assert.equal(payment.status, 200);
   assert.equal(receivedKey, 'payment-test-retry-key');
   assert.equal(receivedAuthorization, `Bearer ${token}`);
-  assert.equal((await fetch(origin + '/api/gateway/payments/one/confirm', {
-    method: 'POST', headers: { Origin: origin, Cookie: cookieHeader },
-  })).status, 200);
-  assert.equal((await fetch(origin + '/api/gateway/payments/webhook/payment_intents', {
-    method: 'POST', headers: { Origin: origin, Cookie: cookieHeader },
-  })).status, 404);
+  assert.equal(
+    (
+      await fetch(origin + '/api/gateway/payments/one/confirm', {
+        method: 'POST',
+        headers: { Origin: origin, Cookie: cookieHeader },
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await fetch(origin + '/api/gateway/payments/webhook/payment_intents', {
+        method: 'POST',
+        headers: { Origin: origin, Cookie: cookieHeader },
+      })
+    ).status,
+    404,
+  );
+  for (const [path, method] of [
+    ['/orders?scope=all', 'GET'],
+    ['/orders', 'POST'],
+    ['/auction/orders?scope=all', 'GET'],
+    ['/auction/USDT_IRT', 'GET'],
+    ['/auction/orders/cancel-all', 'POST'],
+  ]) {
+    const response = await fetch(origin + '/api/gateway' + path, {
+      method,
+      headers: {
+        Origin: origin,
+        Cookie: cookieHeader,
+        ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}),
+      },
+      ...(method === 'POST' ? { body: '{}' } : {}),
+    });
+    assert.equal(response.status, 200, `${method} ${path}`);
+    assert.equal(receivedAuthorization, `Bearer ${token}`);
+  }
+  const { WebSocket: TestSocket } = createRequire(import.meta.url)('next/dist/compiled/ws');
+  await new Promise((resolve, reject) => {
+    const socket = new TestSocket(origin.replace('http:', 'ws:') + '/api/live', {
+      headers: { Cookie: cookieHeader, Origin: origin },
+    });
+    const timeout = globalThis.setTimeout(() => {
+      socket.terminate();
+      reject(new Error('WebSocket proxy timed out'));
+    }, 10000);
+    socket.on('open', () => socket.send(JSON.stringify({ type: 'subscribe', symbol: 'USDT_IRT' })));
+    socket.on('message', (raw) => {
+      assert.equal(JSON.parse(String(raw)).type, 'depth');
+      clearTimeout(timeout);
+      socket.close();
+      resolve();
+    });
+    socket.on('error', (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+  });
   const logout = await fetch(origin + '/api/gateway/auth/logout', {
     method: 'POST',
     headers: { Origin: origin, Cookie: cookieHeader, 'Content-Type': 'application/json' },
@@ -189,5 +271,6 @@ try {
   throw error;
 } finally {
   next.kill('SIGTERM');
+  wsServer.close();
   mock.close();
 }

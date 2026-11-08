@@ -5,9 +5,12 @@ CI publishes the tested frontend image only to GitHub Container Registry (GHCR):
 Publishing uses the built-in `GITHUB_TOKEN`; no private registry credentials are
 required.
 
-Run CI on main to publish an image before deploying. Production deployments
-remain manual and use the selected GHCR tag. The deployment runner authenticates
-with `GITHUB_TOKEN`, pulls the image, and transfers it over SSH to the server.
+Source delivery (the default) builds an uploaded commit archive on the host and
+skips GHCR entirely. See the README for host requirements and caching.
+
+For `delivery=image`, run CI on main to publish an image before deploying.
+Production deployments remain manual and use the selected GHCR tag. The
+deployment runner authenticates with `GITHUB_TOKEN`, pulls the image, and transfers it over SSH to the server.
 The server does not need GHCR credentials. Existing health checks still apply.
 
 The workflows ignore the old `LOCAL_REGISTRY` variable and `LOCAL_REG_USER` /

@@ -1,8 +1,7 @@
 'use client';
-import { ui } from '@/lib/ui-styles';
+import { VerificationCodeInput } from '@/components/verification-code-input';
 
 import Link from 'next/link';
-import { OTPInput } from 'input-otp';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -139,54 +138,17 @@ export function Login() {
             {challenge ? (
               <>
                 <Field label="کد تأیید">
-                  <OTPInput
+                  <VerificationCodeInput
                     key={challenge}
-                    containerClassName="otp-input"
-                    dir="ltr"
-                    aria-label="کد تأیید ۶ رقمی"
-                    aria-invalid={Boolean(error)}
-                    aria-describedby={error ? 'login-error' : undefined}
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    required
-                    autoFocus
-                    disabled={busy}
-                    maxLength={6}
-                    minLength={6}
-                    pattern="[0-9۰-۹٠-٩]*"
                     value={code}
-                    onChange={(value) => {
-                      const normalized = digits(value);
+                    disabled={busy}
+                    invalid={Boolean(error)}
+                    describedBy={error ? 'login-error' : undefined}
+                    onChange={(normalized) => {
                       setCode(normalized);
                       setError('');
                       if (normalized.length === 6) void verify(normalized);
                     }}
-                    pasteTransformer={(value) => digits(value).replace(/[^0-9]/g, '')}
-                    render={({ slots }) => (
-                      <div
-                        data-ui="otp-slots"
-                        className="grid [grid-template-columns:repeat(6,_minmax(0,_1fr))] [gap:clamp(6px,_2vw,_12px)] [width:100%]"
-                        dir="ltr"
-                        aria-hidden="true"
-                      >
-                        {slots.map((slot, index) => (
-                          <div
-                            key={index}
-                            {...ui(
-                              `otp-slot${slot.isActive ? ' active' : ''}${error ? ' invalid' : ''}`,
-                            )}
-                          >
-                            {slot.char}
-                            {slot.hasFakeCaret && (
-                              <span
-                                data-ui="otp-caret"
-                                className="absolute [width:2px] [height:26px] [background:var(--accent)] [animation:otp-blink_1s_step-end_infinite] [@media(prefers-reduced-motion:_reduce)]:[animation:none]"
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   />
                 </Field>
                 <div data-ui="otp-links" className="flex items-center justify-between">

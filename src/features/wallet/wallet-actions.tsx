@@ -1,4 +1,5 @@
 'use client';
+import { VerificationCodeInput } from '@/components/verification-code-input';
 import { Select, SelectOption } from '@/components/select';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -15,6 +16,8 @@ import { useCryptoAssets } from '@/lib/use-data';
 import { fundingRequest } from '@/lib/crypto-funding';
 import type { Payment, PaymentConfig } from '@/lib/payments';
 import type { Withdrawal } from '@/lib/types';
+const MIN_WITHDRAWAL_TOMAN = 5000;
+
 function FiatWalletActions({
   action,
   onClose,
@@ -75,6 +78,7 @@ function FiatWalletActions({
     try {
       if (demo) throw new Error('demo');
       const res = await api<{ resend_in: number }>('/wallet/withdrawals/otp', { method: 'POST' });
+      setCode('');
       setNow(Date.now());
       setResendAt(Date.now() + res.resend_in * 1000);
       setStep(2);
@@ -86,6 +90,7 @@ function FiatWalletActions({
   };
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (busy) return;
     setError('');
     const canonical = parseDecimal(amount, asset === 'IRT' || action === 'deposit' ? 0 : 8);
     const value = Number(canonical);
@@ -135,6 +140,10 @@ function FiatWalletActions({
     }
     if (asset === 'IRT' && !Number.isInteger(value)) {
       setError('مبلغ تومان باید عدد صحیح باشد.');
+      return;
+    }
+    if (asset === 'IRT' && value < MIN_WITHDRAWAL_TOMAN) {
+      setError('حداقل برداشت ۵٬۰۰۰ تومان (۵۰٬۰۰۰ ریال) است.');
       return;
     }
     if (decimalUnits(canonical)! > (decimalUnits(String(balance)) ?? 0n)) {
@@ -254,13 +263,13 @@ function FiatWalletActions({
               hint={
                 action === 'deposit' && charge.data
                   ? `از ${number(charge.data.min_toman)} تا ${number(charge.data.max_toman)} تومان`
-                  : `موجودی قابل استفاده: ${number(balance, 8)}`
+                  : `موجودی قابل برداشت: ${number(balance, 8)} ${assetName(asset)}${asset === 'IRT' ? ' · حداقل برداشت: ۵٬۰۰۰ تومان (۵۰٬۰۰۰ ریال)' : ''}`
               }
             >
               <input
                 required
                 dir="ltr"
-                inputMode="decimal"
+                inputMode={asset === 'IRT' ? 'numeric' : 'decimal'}
                 value={amount}
                 onChange={(e) => setAmount(formatAmountInput(e.target.value))}
               />
@@ -366,7 +375,7 @@ function FiatWalletActions({
                 <span>مقصد برداشت</span>
                 <bdi
                   data-ui="destination-cell"
-                  className="block [max-width:150px] [text-overflow:ellipsis] overflow-hidden"
+                  className="block [min-width:0] text-left [overflow-wrap:anywhere]"
                 >
                   {asset === 'IRT' && bank !== 'other'
                     ? banks.data?.accounts.find((b) => b.id === bank)?.iban
@@ -393,23 +402,25 @@ function FiatWalletActions({
               type="button"
               data-ui="text-link"
               className="[font-size:var(--text-xs)] [color:var(--accent)] inline-flex items-center [gap:5px] font-semibold [padding-top:0] [padding-right:0] [padding-bottom:0] [padding-left:0] [&:hover]:[color:var(--accent-dark)]"
+              disabled={busy}
               onClick={() => {
                 setStep(1);
                 setCode('');
+                setError('');
               }}
             >
               ویرایش اطلاعات برداشت
             </button>
             <Field label="کد ۶ رقمی پیامک">
-              <input
-                required
-                dir="ltr"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                pattern="[0-9]{6}"
+              <VerificationCodeInput
                 value={code}
-                onChange={(e) => setCode(digits(e.target.value))}
+                disabled={busy}
+                invalid={Boolean(error)}
+                describedBy={error ? 'withdrawal-error' : undefined}
+                onChange={(value) => {
+                  setCode(value);
+                  setError('');
+                }}
               />
             </Field>
             <button
@@ -425,6 +436,7 @@ function FiatWalletActions({
         )}
         {error && (
           <p
+            id="withdrawal-error"
             data-ui="inline-error"
             className="[font-size:var(--text-xs)] [color:var(--error-text)] [background:#fff1f3] [padding-top:10px] [padding-right:12px] [padding-bottom:10px] [padding-left:12px] [border-radius:7px] [line-height:1.9] [&_[data-ui~='text-link']]:[color:var(--error-text)]"
             role="alert"
@@ -450,6 +462,7 @@ function FiatWalletActions({
             className="inline-flex items-center justify-center [gap:8px] [border-radius:8px] [padding-top:10px] [padding-right:16px] [padding-bottom:10px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:transparent] [border-right-width:1px] [border-right-style:solid] [border-right-color:transparent] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:transparent] [border-left-width:1px] [border-left-style:solid] [border-left-color:transparent] [font-size:var(--text-sm)] font-semibold [min-height:44px] whitespace-nowrap [transition:background_0.15s,_box-shadow_0.15s] [&[data-ui~='primary']]:[background:var(--accent)] [&[data-ui~='primary']]:[color:#fff] [&[data-ui~='primary']]:[box-shadow:0_3px_5px_#079a7c08] [&[data-ui~='primary']:hover]:[background:var(--accent-dark)] [&[data-ui~='secondary']]:[background:#fff] [&[data-ui~='secondary']]:[border-top-color:#e4e9ef] [&[data-ui~='secondary']]:[border-right-color:#e4e9ef] [&[data-ui~='secondary']]:[border-bottom-color:#e4e9ef] [&[data-ui~='secondary']]:[border-left-color:#e4e9ef] [&[data-ui~='secondary']]:[color:#657183] [&[data-ui~='secondary']:hover]:[background:#f6f8fa] [&[data-ui~='danger']]:[background:var(--red)] [&[data-ui~='danger']]:[color:#fff] [&[data-ui~='full']]:[width:100%]"
             disabled={
               busy ||
+              (action === 'withdraw' && step === 2 && code.length !== 6) ||
               (action === 'deposit' &&
                 (!charge.data?.providers.length || !session.data?.user.id || !!charge.error))
             }

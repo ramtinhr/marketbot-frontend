@@ -32,7 +32,11 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       cache: 'no-store',
       redirect: 'error',
       signal: AbortSignal.timeout(
-        path.startsWith('crypto/') || path.startsWith('payments') ? 40000 : 15000,
+        path === 'orders'
+          ? 90000
+          : path.startsWith('crypto/') || path.startsWith('payments')
+            ? 40000
+            : 15000,
       ),
       headers: {
         ...(requestBody ? { 'Content-Type': 'application/json' } : {}),

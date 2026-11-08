@@ -36,6 +36,7 @@ export function allowedRoute(method: string, path: string): boolean {
       /^wallet\/withdrawals\/[a-zA-Z0-9-]+\/cancel$/,
       /^bank-accounts$/,
       /^auction\/orders$/,
+      /^auction\/orders\/cancel-all$/,
       /^auction\/orders\/[a-zA-Z0-9-]+\/cancel$/,
       /^auction\/offers\/[a-zA-Z0-9-]+\/take$/,
     ],

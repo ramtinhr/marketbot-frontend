@@ -2,8 +2,13 @@ name: Deploy
 on:
   workflow_dispatch:
     inputs:
+      delivery:
+        description: Delivery method (source builds on server; image transfers CI image)
+        type: choice
+        options: [source, image]
+        default: source
       image_tag:
-        description: 'CI image tag (sha-<full commit SHA> recommended; latest also supported)'
+        description: 'Image mode only: CI tag (sha-<full commit SHA> recommended)'
         required: true
         default: latest
 permissions:
@@ -26,6 +31,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Resolve image
+        if: inputs.delivery == 'image'
         id: image
         env:
           IMAGE_TAG: ${{ inputs.image_tag }}
@@ -33,12 +39,14 @@ jobs:
           [[ "$IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]] || exit 1
           echo "ref=ghcr.io/${GITHUB_REPOSITORY,,}:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
       - name: Log in to GHCR
+        if: inputs.delivery == 'image'
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull tested image on runner
+        if: inputs.delivery == 'image'
         env:
           IMAGE: ${{ steps.image.outputs.ref }}
         run: docker pull --platform linux/amd64 "$IMAGE"
@@ -70,7 +78,14 @@ jobs:
             ServerAliveInterval 30
             ServerAliveCountMax 10
           CONF
+      - name: Build source on server and activate
+        if: inputs.delivery == 'source'
+        env:
+          FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
+          FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
+        run: bash deploy/ship-source.sh
       - name: Transfer and activate release
+        if: inputs.delivery == 'image'
         env:
           IMAGE: ${{ steps.image.outputs.ref }}
           FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
@@ -80,8 +95,8 @@ jobs:
         if: always()
         env:
           RESULT: ${{ job.status }}
-          IMAGE: ${{ steps.image.outputs.ref }}
-        run: printf 'Deployment %s\n\nImage %s\n' "$RESULT" "$IMAGE" >> "$GITHUB_STEP_SUMMARY"
+          IMAGE: ${{ steps.image.outputs.ref || github.sha }}
+        run: printf 'Deployment %s\n\nRelease %s\n' "$RESULT" "$IMAGE" >> "$GITHUB_STEP_SUMMARY"
       # Requires the repository secrets TELEGRAM_BOT_TOKEN and
       # TELEGRAM_CHAT_ID_CICD; with either unset these steps quietly do nothing.
       - name: Compose Telegram message
@@ -90,7 +105,7 @@ jobs:
         env:
           JOB_STATUS: ${{ job.status }}
           IMAGE_TAG: ${{ inputs.image_tag }}
-          IMAGE_REF: ${{ steps.image.outputs.ref }}
+          IMAGE_REF: ${{ steps.image.outputs.ref || github.sha }}
         run: |
           set -euo pipefail
 

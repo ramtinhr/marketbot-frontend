@@ -2,12 +2,20 @@
 import { Select, SelectOption } from '@/components/select';
 import { ui } from '@/lib/ui-styles';
 
+import { useTradingLive } from '@/lib/use-trading-live';
+import { useApp } from '@/providers/app-provider';
+import { api, errorText } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useOrders, useResource } from '@/lib/use-data';
 import { Panel, PageHeading, State } from '@/components/ui';
 import { OrderTable } from './order-table';
 import type { Order } from '@/lib/types';
 export function Orders() {
+  useTradingLive('USDT_IRT');
+  const { demo, notify } = useApp();
+  const client = useQueryClient();
+  const [cancelling, setCancelling] = useState(false);
   const [scope, setScope] = useState('open');
   const [side, setSide] = useState('all');
   const [venue, setVenue] = useState('exchange');
@@ -30,6 +38,35 @@ export function Orders() {
         title="سفارش‌های من"
         description="سفارش‌های باز و تاریخچهٔ معاملات خود را مدیریت کنید."
       />
+      {venue === 'auction' && scope === 'open' && orders.length > 0 && (
+        <button
+          data-ui="button secondary"
+          disabled={cancelling}
+          onClick={async () => {
+            if (!window.confirm('همهٔ آگهی‌های باز شما حذف و موجودی مسدودشده آزاد شود؟')) return;
+            setCancelling(true);
+            try {
+              if (demo)
+                client.setQueryData<{ orders: Order[] }>(['auction-orders'], (old) => ({
+                  orders: (old?.orders ?? []).map((o) =>
+                    ['open', 'partial'].includes(o.status) ? { ...o, status: 'cancelled' } : o,
+                  ),
+                }));
+              else {
+                await api('/auction/orders/cancel-all', { method: 'POST', body: {} });
+                await client.invalidateQueries();
+              }
+              notify('آگهی‌های باز حذف شدند.');
+            } catch (e) {
+              notify(errorText(e), true);
+            } finally {
+              setCancelling(false);
+            }
+          }}
+        >
+          حذف همهٔ آگهی‌های باز
+        </button>
+      )}
       <Panel>
         <div
           data-ui="table-toolbar"
