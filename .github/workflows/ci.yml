@@ -31,8 +31,8 @@ jobs:
       - run: npm run test:gateway
       - name: Validate deployment files
         run: |
-          bash -n deploy/*.sh
-          python3 -m unittest discover -s deploy -p 'test_*.py' -v
+          for script in deploy/*.sh; do bash -n "$script"; done
+          PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s deploy -p 'test_*.py' -v
           touch .env
           MARKETBOT_FRONTEND_IMAGE=ci MARKETBOT_API_URL=http://127.0.0.1:8080 MARKETBOT_APP_ORIGIN=https://ci.example docker compose -f docker-compose.prod.yml config -q
   image:

@@ -1,5 +1,7 @@
 # MarketBot Frontend
 
+CI/CD setup and runtime secret templates: [deploy/README.md](deploy/README.md).
+
 An independent Next.js customer portal, designed around desktop workflows and
 adapted to tablets and phones. Persian, right-to-left, with a light neutral
 interface, restrained emerald accents, readable tables, and dedicated workspaces.
@@ -237,7 +239,7 @@ reviewers there if your release process requires them.
 Example `FRONTEND_ENV` (no build-time secrets needed):
 
 ```dotenv
-FRONTEND_PORT=3001
+FRONTEND_PORT=3002
 MARKETBOT_API_URL=http://127.0.0.1:8080
 MARKETBOT_APP_ORIGIN=https://portal.example.com
 MARKETBOT_TRUST_INGRESS=true
@@ -246,13 +248,13 @@ MARKETBOT_TRUST_INGRESS=true
 Deploy the API first. The host needs Bash, gzip, Docker Engine and Compose v2
 supporting `up --wait --wait-timeout`. The service uses host networking and binds
 only to loopback; configure your HTTPS reverse proxy separately to forward the
-portal domain to `127.0.0.1:3001`, overwrite `X-Real-IP`, and preserve the public
+portal domain to `127.0.0.1:3002` (with `FRONTEND_PORT=3002`), overwrite `X-Real-IP`, and preserve the public
 Host. The sibling API's dashboard `WEB_DOMAIN` is a different app; this workflow
 does not change that proxy or provision a portal certificate. Set ingress trust
 to false unless the trusted proxy is configured. Demo mode is forced off.
 
 For image delivery, run **Deploy** on `main` with `delivery=image`, selecting
-`sha-<full commit SHA>` from a successful CI run. `latest` is supported but explicit commit tags make releases
+`sha-<full commit SHA>` from a successful CI run. A blank tag selects this workflow commit; `latest` is supported but explicit commit tags make releases
 easier to audit. Each deployment stores a private release directory and activates
 a content-specific release tag that survives transfer between Docker image stores.
 Compose waits for `/login` health before updating

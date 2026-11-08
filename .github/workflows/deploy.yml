@@ -8,9 +8,9 @@ on:
         options: [source, image]
         default: source
       image_tag:
-        description: 'Image mode only: CI tag (sha-<full commit SHA> recommended)'
-        required: true
-        default: latest
+        description: 'Image mode only: CI tag (blank uses this commit)'
+        required: false
+        default: ""
 permissions:
   contents: read
 concurrency:
@@ -36,6 +36,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
+          IMAGE_TAG=${IMAGE_TAG:-sha-$GITHUB_SHA}
           [[ "$IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]] || exit 1
           echo "ref=ghcr.io/${GITHUB_REPOSITORY,,}:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
       - name: Log in to GHCR

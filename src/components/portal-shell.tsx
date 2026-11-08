@@ -2,6 +2,7 @@
 import { ui } from '@/lib/ui-styles';
 
 import Link from 'next/link';
+import { NavigationLink } from './navigation-link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -167,14 +168,14 @@ export function PortalShell({ children }: { children: ReactNode }) {
           <X size={20} />
         </button>
         <nav aria-label="صفحه‌های پنل" className="mt-6">
-          <Link
+          <NavigationLink
             href={overviewLink.href}
             {...ui(`nav-link ${isCurrentPage(pathname, overviewLink.href) ? 'active' : ''}`)}
             aria-current={isCurrentPage(pathname, overviewLink.href) ? 'page' : undefined}
           >
             <LayoutDashboard size={19} aria-hidden="true" className="shrink-0" />
             <span>{overviewLink.label}</span>
-          </Link>
+          </NavigationLink>
           {navigationGroups.map((group) => (
             <div key={group.id} role="group" aria-labelledby={`nav-${group.id}`} className="mt-4">
               <p
@@ -189,7 +190,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
                   const active = isCurrentPage(pathname, href);
                   return (
                     <li key={href}>
-                      <Link
+                      <NavigationLink
                         href={href}
                         {...ui(`nav-link ${active ? 'active' : ''}`)}
                         aria-current={active ? 'page' : undefined}
@@ -205,7 +206,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
                             {count.toLocaleString('fa-IR')}
                           </span>
                         )}
-                      </Link>
+                      </NavigationLink>
                     </li>
                   );
                 })}
