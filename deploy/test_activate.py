@@ -25,6 +25,7 @@ class ActivationTests(unittest.TestCase):
             docker = binary / 'docker'
             docker.write_text('''#!/usr/bin/env bash
 printf '%s:%s\\n' "$PWD" "$*" >> "$TEST_LOG"
+if [[ "$*" == *"ps -a -q"* ]]; then printf 'test-container\\n'; fi
 if [[ "$*" == *"up -d"* && "$PWD" == "$FAIL_RELEASE" ]]; then exit 1; fi
 ''')
             docker.chmod(0o755)
@@ -41,6 +42,10 @@ if [[ "$*" == *"up -d"* && "$PWD" == "$FAIL_RELEASE" ]]; then exit 1; fi
                 self.assertEqual((root / 'current').resolve(), release)
             else:
                 self.assertNotEqual(result.returncode, 0)
+                self.assertIn('collecting diagnostics before rollback', result.stderr)
+                self.assertIn('inspect --format', commands)
+                self.assertIn('test-container', commands)
+                self.assertLess(commands.index('inspect --format'), commands.rindex(' up -d' if previous else ' down'))
                 if previous:
                     self.assertEqual((root / 'current').resolve(), old)
                     self.assertIn(f'{old}:compose', commands)

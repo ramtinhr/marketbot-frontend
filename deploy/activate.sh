@@ -11,7 +11,14 @@ if compose up -d --remove-orphans --wait --wait-timeout 120; then
   mv -Tf "$root/current.next" "$root/current"
   compose ps
 else
+  echo 'Deployment startup/readiness failed; collecting diagnostics before rollback' >&2
+  compose ps -a || true
   compose logs --tail 100 || true
+  # Compose logs omit healthcheck output, which is often the only failure detail.
+  while IFS= read -r container; do
+    [[ -n "$container" ]] || continue
+    docker inspect --format 'Container {{.Name}} state: {{json .State}}' "$container" || true
+  done < <(compose ps -a -q || true)
   if [[ -n "$previous" && "$previous" != "$release" && -f "$previous/docker-compose.yml" ]]; then
     echo 'Restoring previous release'
     cd "$previous"
