@@ -1,22 +1,15 @@
-# Shared deployment registry
+# GitHub Container Registry
 
-This project can publish and deploy through `registry.parscryptoexchange.com:5443`.
-Images live under `<registry>/<GitHub owner>/<repository>:<tag>`; the miniapp
-uses additional `/server` and `/web` image paths. All projects share the same
-registry service and persistent storage, with separate image repositories.
+CI publishes the tested frontend image only to GitHub Container Registry (GHCR):
+`ghcr.io/<GitHub owner>/<repository>:sha-<full commit SHA>` and `:latest`.
+Publishing uses the built-in `GITHUB_TOKEN`; no private registry credentials are
+required.
 
-In each GitHub repository, configure Actions variable `LOCAL_REGISTRY` as
-`registry.parscryptoexchange.com:5443` and Actions secrets `LOCAL_REG_USER` and
-`LOCAL_REG_PASS`. Make them visible to both CI and the production environment.
-The root-only source of credentials is `/opt/marketbot-registry/credentials.json`
-on the server. Never put the password in source code or workflow variables.
+Run CI on main to publish an image before deploying. Production deployments
+remain manual and use the selected GHCR tag. The deployment runner authenticates
+with `GITHUB_TOKEN`, pulls the image, and transfers it over SSH to the server.
+The server does not need GHCR credentials. Existing health checks still apply.
 
-Merge the workflow changes and run CI on main to publish images before deploying.
-Existing tags are not automatically copied between registries. CI keeps publishing
-to GHCR as well. Removing `LOCAL_REGISTRY` returns deployment to GHCR plus SSH
-image transfer. Production deploys remain manual, with existing health checks.
-
-A single registry can also hold the bot, engine and other projects. Apply the
-same login, image naming, CI publishing, and explicit server pull pattern in
-those source repositories. The registry does not automatically mirror upstream
-registries or Docker Hub images. Keep registry DNS in DNS-only mode in Cloudflare.
+The workflows ignore the old `LOCAL_REGISTRY` variable and `LOCAL_REG_USER` /
+`LOCAL_REG_PASS` secrets. These can be removed from the repository and production
+environment settings if no other workflows use them.

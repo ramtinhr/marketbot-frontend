@@ -28,25 +28,15 @@ jobs:
         id: image
         env:
           IMAGE_TAG: ${{ inputs.image_tag }}
-          LOCAL_REGISTRY: ${{ vars.LOCAL_REGISTRY }}
         run: |
           [[ "$IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]] || exit 1
-          registry="${LOCAL_REGISTRY:-ghcr.io}"
-          echo "ref=$registry/${GITHUB_REPOSITORY,,}:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
-      - if: vars.LOCAL_REGISTRY == ''
+          echo "ref=ghcr.io/${GITHUB_REPOSITORY,,}:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+      - name: Log in to GHCR
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Log in to deployment registry
-        if: github.event_name != 'pull_request' && vars.LOCAL_REGISTRY != ''
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ${{ vars.LOCAL_REGISTRY }}
-          username: ${{ secrets.LOCAL_REG_USER }}
-          password: ${{ secrets.LOCAL_REG_PASS }}
-
       - name: Pull tested image on runner
         env:
           IMAGE: ${{ steps.image.outputs.ref }}
@@ -79,22 +69,9 @@ jobs:
             ServerAliveInterval 30
             ServerAliveCountMax 10
           CONF
-      - name: Prepare deployment registry images
-        if: vars.LOCAL_REGISTRY != ''
-        env:
-          LOCAL_REGISTRY: ${{ vars.LOCAL_REGISTRY }}
-          LOCAL_REG_USER: ${{ secrets.LOCAL_REG_USER }}
-          LOCAL_REG_PASS: ${{ secrets.LOCAL_REG_PASS }}
-        run: |
-          set -euo pipefail
-          [[ "$LOCAL_REGISTRY" =~ ^[a-zA-Z0-9.-]+(:[0-9]+)?$ ]]
-          [[ "$LOCAL_REG_USER" =~ ^[a-zA-Z0-9_.-]+$ ]]
-          printf '%s' "$LOCAL_REG_PASS" | ssh target "docker login '$LOCAL_REGISTRY' -u '$LOCAL_REG_USER' --password-stdin"
-
       - name: Transfer and activate release
         env:
           IMAGE: ${{ steps.image.outputs.ref }}
-          LOCAL_REGISTRY: ${{ vars.LOCAL_REGISTRY }}
           FRONTEND_DEPLOY_PATH: ${{ vars.FRONTEND_DEPLOY_PATH }}
           FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
         run: bash deploy/ship.sh
