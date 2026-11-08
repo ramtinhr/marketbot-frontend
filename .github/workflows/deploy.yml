@@ -15,7 +15,8 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Image uploads over the production SSH link can take over an hour.
+    timeout-minutes: 180
     environment: production
     permissions:
       contents: read
@@ -81,6 +82,48 @@ jobs:
           RESULT: ${{ job.status }}
           IMAGE: ${{ steps.image.outputs.ref }}
         run: printf 'Deployment %s\n\nImage %s\n' "$RESULT" "$IMAGE" >> "$GITHUB_STEP_SUMMARY"
+      # Requires the repository secrets TELEGRAM_BOT_TOKEN and
+      # TELEGRAM_CHAT_ID_CICD; with either unset these steps quietly do nothing.
+      - name: Compose Telegram message
+        id: notify_msg
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+        run: |
+          set -euo pipefail
+
+          repo_url="${{ github.server_url }}/${{ github.repository }}"
+          short_sha=$(printf '%s' "${{ github.sha }}" | cut -c1-7)
+          image=$(printf '%s' "${IMAGE_REF:-$IMAGE_TAG}" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
+
+          case "$JOB_STATUS" in
+            success) headline="🚀 <b>Frontend deploy succeeded</b>" ;;
+            cancelled) headline="⚪️ <b>Frontend deploy cancelled</b>" ;;
+            *) headline="🔥 <b>Frontend deploy FAILED</b>" ;;
+          esac
+
+          {
+            echo "text<<TELEGRAM_EOF"
+            echo "${headline}"
+            echo ""
+            echo "📦 <code>${image}</code>"
+            echo "🔖 <code>${short_sha}</code>"
+            echo "👤 ${{ github.actor }}"
+            echo ""
+            echo "<a href=\"${repo_url}/actions/runs/${{ github.run_id }}\">deploy run</a>"
+            echo "TELEGRAM_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Notify Telegram
+        if: always()
+        uses: ./.github/actions/telegram-notify
+        with:
+          bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          chat_id: ${{ secrets.TELEGRAM_CHAT_ID_CICD }}
+          message: ${{ steps.notify_msg.outputs.text }}
+
       - name: Clean credentials
         if: always()
         run: rm -f env.out ~/.ssh/id_deploy ~/.ssh/config ~/.ssh/known_hosts

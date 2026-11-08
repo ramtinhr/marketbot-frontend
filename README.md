@@ -181,6 +181,12 @@ builds publish `sha-<full commit SHA>` and `latest`. PRs receive no deployment
 secrets and do not publish. External actions are SHA-pinned; Dependabot proposes
 updates to actions, Docker and npm dependencies.
 
+Telegram notifications match the other MarketBot projects: pushes to `main` report
+CI and image results, and manual deployments report success, failure, or cancellation.
+Configure repository secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID_CICD`
+(the numeric destination chat ID) to enable them. Missing secrets skip sending;
+Telegram errors produce warnings without failing CI or deployment.
+
 Configure the GitHub `production` environment with these secrets:
 
 | Secret | Value |
@@ -223,6 +229,14 @@ the exact downloaded image ID. Compose waits for `/login` health before updating
 First-deployment failure stops the failed service. This checks frontend readiness;
 it does not verify live SMS, payments, or all upstream API features. A single
 container restart can briefly interrupt traffic.
+
+The deployment job allows 180 minutes for slow image uploads over SSH. For
+example, transferring 235 MB at 40 kB/s takes about 98 minutes before image
+loading and activation. If a run ends with `The operation was canceled` during
+upload, check the job conclusion for a timeout or manual cancellation. Install
+rsync on both runner and host to reuse unchanged layers and retain partial
+uploads under `.image-cache` for the next run. Rerun with the same explicit image
+tag to reuse that content; activation only starts after the image is loaded.
 
 For a deliberate rollback, run Deploy with an earlier successful image tag.
 Retain previous release directories and Docker images for automatic rollback;

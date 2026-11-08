@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowLeft, Clock3, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Select, SelectOption } from '@/components/select';
 import { Field, Modal, Money, Panel, PanelTitle, State } from '@/components/ui';
 import { api } from '@/lib/api';
 import { date, number } from '@/lib/format';
@@ -85,11 +86,11 @@ export function P2PMarket({
             />
           </Field>
           <Field label="مرتب‌سازی">
-            <select value={sort} onChange={(e) => setSort(e.target.value)}>
-              <option value="newest">جدیدترین درخواست‌ها</option>
-              <option value="smallest">کمترین مبلغ</option>
-              <option value="largest">بیشترین مبلغ</option>
-            </select>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectOption value="newest">جدیدترین درخواست‌ها</SelectOption>
+              <SelectOption value="smallest">کمترین مبلغ</SelectOption>
+              <SelectOption value="largest">بیشترین مبلغ</SelectOption>
+            </Select>
           </Field>
           <span className={styles.count}>{number(orders.length)} درخواست</span>
         </div>
