@@ -121,7 +121,7 @@ export function Markets() {
         className="flex items-center [gap:7px] [color:#66758a] [margin-top:18px] [margin-right:3px] [margin-bottom:18px] [margin-left:3px] [font-size:var(--text-xs)]"
       >
         <Activity size={15} />
-        <span>قیمت‌ها به تومان هستند و به‌صورت دوره‌ای به‌روزرسانی می‌شوند.</span>
+        <span>قیمت‌ها به تومان هستند و به‌صورت زنده به‌روزرسانی می‌شوند.</span>
       </div>
     </>
   );

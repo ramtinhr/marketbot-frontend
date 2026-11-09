@@ -305,7 +305,14 @@ endpoints. Exchange orders go through the existing Kafka exchange bridge and
 matching engine. `/api/live` proxies the authenticated WebSocket to
 `/v1/market/ws` using the server's runtime `MARKETBOT_API_URL`; the session stays
 in its HttpOnly cookie. The ingress must allow WebSocket upgrades on `/api/live`.
-Polling remains enabled to reconcile disconnects.
+Market and auction views receive their initial snapshot and all subsequent
+updates over WebSocket, including a fresh snapshot after reconnecting. They do
+not fetch order books from REST. Duplicate views of a pair
+share a connection. Deploy the matching API summary-stream changes alongside
+this frontend: the hub broadcasts each watched pair's price summary every ten
+seconds (one shared read per pair), while depth and trades stream from exchange
+events. Market and auction endpoints no longer poll in the browser; unrelated
+resources retain their existing refresh intervals.
 
 Deploy the matching `marketbot-api` changes and run its `npm run migrate` before
 using trading. Migration `011_customer_trading` keeps the Mini App's existing

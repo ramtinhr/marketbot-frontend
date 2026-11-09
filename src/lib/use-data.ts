@@ -1,5 +1,7 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { requestTradingSnapshot } from './trading-stream';
+import { useTradingLive } from './use-trading-live';
 import { api } from './api';
 import { useApp } from '@/providers/app-provider';
 import {
@@ -13,7 +15,12 @@ import {
   demoUser,
 } from './demo';
 import type { Wallet, Order, BankAccount, Market, Entry, Auction, User } from './types';
-export function useResource<T>(key: string, path: string, fixture: T, interval = 15000) {
+export function useResource<T>(
+  key: string,
+  path: string,
+  fixture: T,
+  interval: number | false = 15000,
+) {
   const { demo } = useApp();
   return useQuery<T>({
     queryKey: [key],
@@ -28,22 +35,28 @@ export const useBanks = () =>
   useResource<{ accounts: BankAccount[] }>('banks', '/bank-accounts', { accounts: demoBanks });
 export const useSymbols = () =>
   useResource<{ symbols: string[] }>('symbols', '/market/symbols', { symbols: demoSymbols }, 60000);
+function useStreamResource<T>(key: string, symbol: string, fixture: T) {
+  useTradingLive(symbol);
+  const client = useQueryClient();
+  const { demo } = useApp();
+  return useQuery<T>({
+    queryKey: [key],
+    queryFn: ({ signal }) =>
+      demo ? Promise.resolve(fixture) : requestTradingSnapshot<T>(client, symbol, key, signal),
+    staleTime: Infinity,
+    refetchInterval: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+  });
+}
 export const useMarket = (symbol: string) =>
-  useResource<Market>(
-    `market-${symbol}`,
-    `/market/${encodeURIComponent(symbol)}`,
-    demoMarket(symbol),
-    5000,
-  );
+  useStreamResource<Market>(`market-${symbol}`, symbol, demoMarket(symbol));
 export const useEntries = () =>
   useResource<{ entries: Entry[] }>('entries', '/wallet/entries', { entries: demoEntries });
 export const useAuction = (symbol: string) =>
-  useResource<Auction>(
-    `auction-${symbol}`,
-    `/auction/${encodeURIComponent(symbol)}`,
-    demoAuction(symbol),
-    5000,
-  );
+  useStreamResource<Auction>(`auction-${symbol}`, symbol, demoAuction(symbol));
 
 export function useSession() {
   const { demo } = useApp();
