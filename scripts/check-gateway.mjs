@@ -101,6 +101,25 @@ try {
     await setTimeout(200);
   }
   assert.ok(ready, output);
+  // Host routing must work when Next normalizes its internal URL to loopback.
+  const portalHome = await fetch(origin + '/');
+  assert.equal(portalHome.status, 200);
+  assert.doesNotMatch(await portalHome.text(), /دنیای دارایی دیجیتال/);
+  const landingHtml = await new Promise((resolve, reject) => {
+    http
+      .get(origin + '/', { headers: { Host: 'parscryptoexchange.com' } }, (res) => {
+        assert.equal(res.statusCode, 200);
+        let html = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+          html += chunk;
+        });
+        res.on('end', () => resolve(html));
+      })
+      .on('error', reject);
+  });
+  assert.match(landingHtml, /دنیای دارایی دیجیتال/);
+  assert.match(landingHtml, /https:\/\/portal.parscryptoexchange.com\/login/);
   const post = (path, body = {}, headers = {}) =>
     fetch(origin + '/api/gateway' + path, {
       method: 'POST',

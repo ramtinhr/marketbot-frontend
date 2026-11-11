@@ -85,3 +85,19 @@ Demo mode is forced off by Compose. Enable ingress trust only when your reverse
 proxy overwrites `X-Real-IP` and the app cannot be reached directly.
 `FRONTEND_PORT=3002` in the example avoids the previously occupied `3001`; verify
 that `3002` is free and point the frontend proxy upstream to `127.0.0.1:3002`.
+
+## Main-domain landing page
+
+The frontend serves the public Persian landing page at `/` on
+`https://parscryptoexchange.com`. Calls to action open the customer portal at
+`https://portal.parscryptoexchange.com/login`. Keep `MARKETBOT_APP_ORIGIN` set to
+`https://portal.parscryptoexchange.com` for authenticated requests and WebSockets.
+The portal's existing `/` URL still shows the dashboard through a host-specific
+Next.js rewrite; `/dashboard` is also available directly. Local development at
+`http://127.0.0.1:3001/` shows the landing page.
+
+Nginx belongs to **marketbot-api**; do not start a second proxy on ports 80/443.
+Deploy both repositories, point the apex DNS record at the shared ingress, and
+follow the main-domain certificate instructions in the API deployment README.
+Its `LANDING_PORT` and `PORTAL_PORT` must equal this project's `FRONTEND_PORT`
+(default example: `3002`). No frontend rebuild or public backend URL is required.

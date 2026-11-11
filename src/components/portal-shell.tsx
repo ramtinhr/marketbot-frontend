@@ -27,7 +27,7 @@ import { api, ApiError, errorText } from '@/lib/api';
 import { useApp } from '@/providers/app-provider';
 import { useOrders, useSession } from '@/lib/use-data';
 import { Modal, State } from './ui';
-const overviewLink = { href: '/', label: 'نمای کلی', icon: LayoutDashboard };
+const overviewLink = { href: '/dashboard', label: 'نمای کلی', icon: LayoutDashboard };
 const navigationGroups = [
   {
     id: 'trading',
@@ -145,7 +145,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
         aria-label="فهرست اصلی"
       >
         <Link
-          href="/"
+          href="/dashboard"
           data-ui="brand"
           className="flex items-center [gap:11px] [padding-top:0] [padding-right:14px] [padding-bottom:0] [padding-left:14px] [font-size:22px] [font-weight:850] [letter-spacing:-0.5px] [color:#1c3431] [line-height:1.5] [@media(width<=1250px)]:[padding-right:10px] [@media(width<=1250px)]:[padding-left:10px] [@media(width<=1250px)]:[font-size:20px] [&_small]:block [&_small]:[letter-spacing:2.7px] [&_small]:[font-size:var(--text-xs)] [&_small]:font-semibold [&_small]:[color:#9aa3af] [&_small]:[margin-top:2px]"
         >
