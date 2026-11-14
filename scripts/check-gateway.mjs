@@ -101,6 +101,15 @@ try {
     await setTimeout(200);
   }
   assert.ok(ready, output);
+  const forwardedHome = await fetch(origin + '/', {
+    headers: { 'X-Forwarded-Proto': 'https' },
+    redirect: 'manual',
+  });
+  assert.equal(forwardedHome.status, 307);
+  const homeDestination = new URL(forwardedHome.headers.get('location'));
+  assert.equal(homeDestination.protocol, 'http:');
+  assert.equal(homeDestination.pathname, '/dashboard');
+  assert.ok(['127.0.0.1', 'localhost'].includes(homeDestination.hostname));
   // Host routing must work when Next normalizes its internal URL to loopback.
   const portalHome = await fetch(origin + '/');
   assert.equal(portalHome.status, 200);

@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
       hostname === new URL(portalOrigin).hostname &&
       hostname !== 'parscryptoexchange.com'
     )
-      return NextResponse.rewrite(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/dashboard', portalOrigin));
     return NextResponse.next();
   }
   const expectedOrigin = process.env.MARKETBOT_APP_ORIGIN || request.nextUrl.origin;

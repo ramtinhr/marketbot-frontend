@@ -1,4 +1,5 @@
 'use client';
+import { walletAddressError } from '@/lib/wallet-address';
 import { VerificationCodeInput } from '@/components/verification-code-input';
 import { Select, SelectOption } from '@/components/select';
 import { useEffect, useState } from 'react';
@@ -158,6 +159,13 @@ function FiatWalletActions({
       setError('آدرس و شبکهٔ مقصد را وارد کنید.');
       return;
     }
+    if (asset !== 'IRT') {
+      const addressError = walletAddressError(network || networks[0], destination);
+      if (addressError) {
+        setError(addressError);
+        return;
+      }
+    }
     if (step === 1) {
       if (resendAt > Date.now()) setStep(2);
       else await sendCode();
@@ -179,7 +187,7 @@ function FiatWalletActions({
           ...(asset === 'IRT' && bank !== 'other'
             ? { recipient_type: 'saved', bank_account_id: bank }
             : {
-                destination,
+                destination: asset === 'IRT' ? destination : destination.trim(),
                 ...(asset === 'IRT'
                   ? { recipient_type: 'other', beneficiary_name: beneficiary }
                   : {}),

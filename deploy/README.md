@@ -92,8 +92,8 @@ The frontend serves the public Persian landing page at `/` on
 `https://parscryptoexchange.com`. Calls to action open the customer portal at
 `https://portal.parscryptoexchange.com/login`. Keep `MARKETBOT_APP_ORIGIN` set to
 `https://portal.parscryptoexchange.com` for authenticated requests and WebSockets.
-The portal's existing `/` URL still shows the dashboard through a host-specific
-Next.js rewrite; `/dashboard` is also available directly. Local development at
+The portal's existing `/` URL still redirects to the dashboard through a host-specific
+Next.js redirect; `/dashboard` is also available directly. Local development at
 `http://127.0.0.1:3001/` shows the landing page.
 
 Nginx belongs to **marketbot-api**; do not start a second proxy on ports 80/443.

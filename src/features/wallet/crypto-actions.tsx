@@ -1,4 +1,5 @@
 'use client';
+import { walletAddressError } from '@/lib/wallet-address';
 import { Select, SelectOption } from '@/components/select';
 import { useRef, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -184,8 +185,9 @@ function CryptoForm({
       setError('موجودی قابل استفاده کافی نیست.');
       return;
     }
-    if (!destination.trim()) {
-      setError('آدرس مقصد را وارد کنید.');
+    const addressError = walletAddressError(asset.network, destination);
+    if (addressError) {
+      setError(addressError);
       return;
     }
     if (tag && (!/^\d{1,10}$/.test(tag) || BigInt(tag) > 4294967295n)) {
@@ -414,7 +416,10 @@ function CryptoForm({
                   autoComplete="off"
                   spellCheck={false}
                   value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
+                  onChange={(e) => {
+                    setDestination(e.target.value);
+                    setError('');
+                  }}
                 />
               </Field>
               {asset.network === 'XRP' && (
