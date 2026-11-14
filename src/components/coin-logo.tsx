@@ -6,11 +6,17 @@ const logos: Record<string, string> = {
   USDT: '/coins/usdt.webp',
   TON: '/coins/ton.webp',
   SOL: '/coins/sol.webp',
+  DOGE: '/coins/doge.webp',
+  SHIB: '/coins/shib.webp',
+  TRX: '/coins/trx.webp',
+  XRP: '/coins/xrp.webp',
+  BNB: '/coins/bnb.webp',
+  ADA: '/coins/ada.webp',
 };
 
 /** Decorative logo; the surrounding asset label supplies the accessible name. */
 export function CoinLogo({ asset }: { asset: string }) {
-  const symbol = asset.toUpperCase();
+  const symbol = asset.trim().toUpperCase();
   const src = logos[symbol];
   if (!src) return symbol === 'IRT' ? 'ت' : symbol.charAt(0);
 
@@ -23,7 +29,13 @@ export function CoinLogo({ asset }: { asset: string }) {
       loading="lazy"
       decoding="async"
       unoptimized
-      style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
+      style={{
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        objectFit: 'contain',
+        borderRadius: '100%',
+      }}
     />
   );
 }

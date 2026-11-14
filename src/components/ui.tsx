@@ -12,8 +12,9 @@ import { assetName, number } from '@/lib/format';
 export function AssetIcon({ asset, small = false }: { asset: string; small?: boolean }) {
   return (
     <span
-      {...ui(`asset-icon asset-${asset.toLowerCase()} ${small ? 'small' : ''}`)}
+      {...ui(`asset-icon asset-${asset.trim().toLowerCase()} ${small ? 'small' : ''}`)}
       aria-hidden="true"
+      style={{ borderRadius: '100%', overflow: 'hidden' }}
     >
       <CoinLogo asset={asset} />
     </span>
