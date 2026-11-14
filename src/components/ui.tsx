@@ -1,4 +1,5 @@
 'use client';
+import { CoinLogo } from './coin-logo';
 import { ui } from '@/lib/ui-styles';
 import styles from './modal.module.css';
 
@@ -14,8 +15,7 @@ export function AssetIcon({ asset, small = false }: { asset: string; small?: boo
       {...ui(`asset-icon asset-${asset.toLowerCase()} ${small ? 'small' : ''}`)}
       aria-hidden="true"
     >
-      {({ BTC: '₿', ETH: 'Ξ', USDT: '₮', IRT: 'ت', TON: '◈' } as Record<string, string>)[asset] ??
-        asset.charAt(0)}
+      <CoinLogo asset={asset} />
     </span>
   );
 }

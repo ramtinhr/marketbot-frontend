@@ -12,33 +12,30 @@ import {
   Handshake,
 } from 'lucide-react';
 import s from '@/app/landing.module.css';
+import { CoinLogo } from '@/components/coin-logo';
 const login = 'https://portal.parscryptoexchange.com/login';
 const assets = [
   {
     symbol: 'BTC',
     name: 'بیت‌کوین',
-    mark: '₿',
     color: '#f59b25',
     path: 'M0 36L12 28L23 31L35 17L47 24L59 19L70 26L83 12L96 18L110 5',
   },
   {
     symbol: 'ETH',
     name: 'اتریوم',
-    mark: 'Ξ',
     color: '#7d88c7',
     path: 'M0 12L12 19L23 11L35 25L47 18L59 32L70 23L83 29L96 19L110 25',
   },
   {
     symbol: 'USDT',
     name: 'تتر',
-    mark: '₮',
     color: '#269c7c',
     path: 'M0 22L12 21L23 24L35 20L47 22L59 19L70 22L83 20L96 23L110 21',
   },
   {
     symbol: 'TON',
     name: 'تون‌کوین',
-    mark: '◇',
     color: '#279ed1',
     path: 'M0 32L12 35L23 26L35 30L47 18L59 22L70 13L83 19L96 9L110 14',
   },
@@ -110,8 +107,8 @@ export function MarketDiscovery() {
               className={s.marketRow}
             >
               <span className={s.assetIdentity}>
-                <span className={s.assetCoin} style={{ background: asset.color }}>
-                  {asset.mark}
+                <span className={s.assetCoin} aria-hidden="true">
+                  <CoinLogo asset={asset.symbol} />
                 </span>
                 <span>
                   <strong>{asset.name}</strong>
@@ -241,7 +238,9 @@ export function ProductExplorer() {
                 <span>دارایی‌های شما</span>
                 {assets.slice(0, 3).map((asset) => (
                   <div key={asset.symbol}>
-                    <span style={{ color: asset.color }}>{asset.mark}</span>
+                    <span style={{ width: 28, height: 28, flexShrink: 0 }} aria-hidden="true">
+                      <CoinLogo asset={asset.symbol} />
+                    </span>
                     <strong>{asset.name}</strong>
                     <span dir="ltr">{asset.symbol}</span>
                   </div>
