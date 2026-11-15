@@ -25,12 +25,12 @@ import {
 const portal = 'https://portal.parscryptoexchange.com';
 const login = `${portal}/login`;
 export const metadata: Metadata = {
-  title: { absolute: 'پارس کریپتو | معامله و مدیریت دارایی دیجیتال' },
+  title: { absolute: 'پارس کریپتو اکسچنج | معامله و مدیریت دارایی دیجیتال' },
   description:
-    'بازارها، معاملات، کیف پول و تبادل همتا به همتا؛ دارایی دیجیتال خود را در پارس کریپتو مدیریت کنید.',
+    'بازارها، معاملات، کیف پول و تبادل همتا به همتا؛ دارایی دیجیتال خود را در پارس کریپتو اکسچنج مدیریت کنید.',
   alternates: { canonical: 'https://parscryptoexchange.com' },
   openGraph: {
-    title: 'پارس کریپتو | یک فضای روشن برای دارایی دیجیتال',
+    title: 'پارس کریپتو اکسچنج | یک فضای روشن برای دارایی دیجیتال',
     description: 'از اولین واریز تا معامله؛ بازار، کیف پول و سفارش‌ها در یک پنل.',
     url: 'https://parscryptoexchange.com',
     locale: 'fa_IR',
@@ -92,12 +92,12 @@ export default function LandingPage() {
         </a>
         <header className={s.header}>
           <div className={s.container + ' ' + s.nav}>
-            <a href="/" className={s.brand} aria-label="پارس کریپتو، صفحه اصلی">
-              <span className={s.mark}>
-                <ArrowLeftRight size={23} />
+            <a href="/" className={s.brand} aria-label="پارس کریپتو اکسچنج، صفحه اصلی">
+              <span className={s.mark} dir="ltr">
+                PCE
               </span>
               <span>
-                پارس کریپتو<small>PARS CRYPTO EXCHANGE</small>
+                پارس کریپتو اکسچنج<small>PCE</small>
               </span>
             </a>
             <nav aria-label="راهبری اصلی">
@@ -135,7 +135,7 @@ export default function LandingPage() {
               </p>
               <div className={s.actions}>
                 <a className={s.primary} href={login}>
-                  شروع با پارس کریپتو <ArrowUpLeft size={20} />
+                  شروع با پارس کریپتو اکسچنج <ArrowUpLeft size={20} />
                 </a>
                 <a className={s.secondary} href="#features">
                   آشنایی با امکانات <span>↓</span>
@@ -453,7 +453,7 @@ export default function LandingPage() {
         <footer className={s.container + ' ' + s.footer}>
           <div>
             <a href="/" className={s.footerBrand}>
-              پارس کریپتو
+              پارس کریپتو اکسچنج
             </a>
             <p>فضایی یکپارچه برای دارایی دیجیتال.</p>
           </div>

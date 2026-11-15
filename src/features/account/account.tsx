@@ -14,7 +14,7 @@ export function Account() {
         className="grid [grid-template-columns:1fr_1fr] [gap:24px] [@media(width<=1000px)]:[grid-template-columns:1fr]"
       >
         <Panel>
-          <PanelTitle title="اطلاعات حساب" subtitle="اطلاعات ثبت‌شدهٔ شما در مارکت‌بات" />
+          <PanelTitle title="اطلاعات حساب" subtitle="اطلاعات ثبت‌شدهٔ شما در پارس کریپتو اکسچنج" />
           <div
             data-ui="account-profile"
             className="flex items-center [gap:15px] [padding-top:12px] [padding-right:24px] [padding-bottom:26px] [padding-left:24px] [@media(width<=640px)]:[gap:12px] [@media(width<=640px)]:[padding-right:20px] [@media(width<=640px)]:[padding-left:20px] [&_>_div]:[flex:1] [&_h2]:[font-size:var(--text-base)] [&_>_div_>_span]:[font-size:var(--text-xs)] [&_>_div_>_span]:[color:#66758a] [@media(width<=640px)]:[&_h2]:[font-size:var(--text-sm)]"
@@ -27,7 +27,7 @@ export function Account() {
             </span>
             <div>
               <h2>
-                {[user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'کاربر مارکت‌بات'}
+                {[user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'کاربر پارس کریپتو اکسچنج'}
               </h2>
               <span>حساب شخصی</span>
             </div>

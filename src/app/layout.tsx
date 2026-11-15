@@ -9,8 +9,8 @@ const vazir = localFont({
   display: 'swap',
 });
 export const metadata: Metadata = {
-  title: { default: 'مارکت‌بات | پنل کاربری', template: '%s | مارکت‌بات' },
-  description: 'پنل کاربری مارکت‌بات؛ مدیریت دارایی، مشاهدهٔ بازارها و معاملات',
+  title: { default: 'پارس کریپتو اکسچنج | پنل کاربری', template: '%s | پارس کریپتو اکسچنج' },
+  description: 'پنل کاربری پارس کریپتو اکسچنج؛ مدیریت دارایی، مشاهدهٔ بازارها و معاملات',
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

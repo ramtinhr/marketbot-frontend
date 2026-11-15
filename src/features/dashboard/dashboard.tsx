@@ -65,7 +65,7 @@ export function Dashboard() {
   return (
     <>
       <PageHeading
-        title={`سلام، ${session.data?.user.first_name ?? 'به مارکت‌بات خوش آمدید'}${session.data?.user.first_name ? ' 👋' : ''}`}
+        title={`سلام، ${session.data?.user.first_name ?? 'به پارس کریپتو اکسچنج خوش آمدید'}${session.data?.user.first_name ? ' 👋' : ''}`}
         description="نگاهی به دارایی‌ها، بازار و فعالیت‌های اخیر شما."
         actions={
           <>

@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 11px;
-  font-size: 21px;
+  font-size: 17px;
   font-weight: 800;
   line-height: 1.5;
 }
@@ -37,6 +37,9 @@
   direction: ltr;
 }
 .mark {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
   display: grid;
   place-items: center;
   background: var(--green);
@@ -598,10 +601,13 @@
     gap: 12px;
   }
   .brand {
-    font-size: 17px;
+    font-size: 13px;
     gap: 8px;
   }
   .mark {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
     width: 35px;
     height: 35px;
   }
@@ -1520,7 +1526,7 @@
   .assetCoin {
     width: 33px;
     height: 33px;
-    font-size: 21px;
+    font-size: 17px;
   }
   .sectionHeading .textLink {
     margin-top: 18px;
@@ -1561,7 +1567,7 @@
     padding: 16px;
   }
   .productContent h3 {
-    font-size: 21px;
+    font-size: 17px;
   }
   .learnGrid {
     grid-template-columns: 1fr;

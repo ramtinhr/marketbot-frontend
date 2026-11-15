@@ -101,16 +101,16 @@ export function Login() {
         <Link
           href="/login"
           data-ui="brand"
-          className="flex items-center [gap:11px] [padding-top:0] [padding-right:14px] [padding-bottom:0] [padding-left:14px] [font-size:22px] [font-weight:850] [letter-spacing:-0.5px] [color:#1c3431] [line-height:1.5] [@media(width<=1250px)]:[padding-right:10px] [@media(width<=1250px)]:[padding-left:10px] [@media(width<=1250px)]:[font-size:20px] [&_small]:block [&_small]:[letter-spacing:2.7px] [&_small]:[font-size:var(--text-xs)] [&_small]:font-semibold [&_small]:[color:#9aa3af] [&_small]:[margin-top:2px]"
+          className="flex items-center [gap:11px] [padding-top:0] [padding-right:14px] [padding-bottom:0] [padding-left:14px] [font-size:16px] [font-weight:850] [letter-spacing:-0.5px] [color:#1c3431] [line-height:1.5] [@media(width<=1250px)]:[padding-right:10px] [@media(width<=1250px)]:[padding-left:10px] [@media(width<=1250px)]:[font-size:15px] [&_small]:block [&_small]:[letter-spacing:2.7px] [&_small]:[font-size:var(--text-xs)] [&_small]:font-semibold [&_small]:[color:#9aa3af] [&_small]:[margin-top:2px]"
         >
           <span
             data-ui="brand-mark"
             className="[width:37px] [height:37px] [border-radius:11px] [background:var(--accent)] [color:white] grid place-items-center [box-shadow:0_5px_12px_#079a7c15] [@media(width<=1000px)]:[width:32px] [@media(width<=1000px)]:[height:32px]"
           >
-            <ChartNoAxesCombined size={23} />
+            <span dir="ltr" className="text-xs font-extrabold tracking-tight">PCE</span>
           </span>
           <span>
-            مارکت‌بات<small>MARKETBOT</small>
+            پارس کریپتو اکسچنج<small>PCE</small>
           </span>
         </Link>
         <div
@@ -123,7 +123,7 @@ export function Login() {
           >
             <Smartphone size={25} />
           </span>
-          <h1>{challenge ? 'تأیید شمارهٔ موبایل' : 'به مارکت‌بات خوش آمدید'}</h1>
+          <h1>{challenge ? 'تأیید شمارهٔ موبایل' : 'به پارس کریپتو اکسچنج خوش آمدید'}</h1>
           <p>
             {challenge
               ? `کد ۶ رقمی ارسال‌شده به ${phone} را وارد کنید.`
@@ -247,7 +247,7 @@ export function Login() {
           data-ui="login-footer"
           className="text-center [color:#66758a] [font-size:var(--text-xs)]"
         >
-          مارکت‌بات · کیف پول و بازار معاملات
+          پارس کریپتو اکسچنج · کیف پول و بازار معاملات
         </footer>
       </div>
       <aside

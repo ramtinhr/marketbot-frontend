@@ -117,7 +117,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     );
   if (!session.data.verified) return null;
   const user = session.data.user;
-  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'کاربر مارکت‌بات';
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'کاربر پارس کریپتو اکسچنج';
   const title = links.find((link) => isCurrentPage(pathname, link.href))?.label ?? 'پنل کاربری';
   return (
     <div data-ui="portal" className="[min-height:100vh] [overflow-x:clip]">
@@ -147,16 +147,16 @@ export function PortalShell({ children }: { children: ReactNode }) {
         <Link
           href="/dashboard"
           data-ui="brand"
-          className="flex items-center [gap:11px] [padding-top:0] [padding-right:14px] [padding-bottom:0] [padding-left:14px] [font-size:22px] [font-weight:850] [letter-spacing:-0.5px] [color:#1c3431] [line-height:1.5] [@media(width<=1250px)]:[padding-right:10px] [@media(width<=1250px)]:[padding-left:10px] [@media(width<=1250px)]:[font-size:20px] [&_small]:block [&_small]:[letter-spacing:2.7px] [&_small]:[font-size:var(--text-xs)] [&_small]:font-semibold [&_small]:[color:#9aa3af] [&_small]:[margin-top:2px]"
+          className="flex items-center [gap:11px] [padding-top:0] [padding-right:14px] [padding-bottom:0] [padding-left:14px] [font-size:16px] [font-weight:850] [letter-spacing:-0.5px] [color:#1c3431] [line-height:1.5] [@media(width<=1250px)]:[padding-right:10px] [@media(width<=1250px)]:[padding-left:10px] [@media(width<=1250px)]:[font-size:15px] [&_small]:block [&_small]:[letter-spacing:2.7px] [&_small]:[font-size:var(--text-xs)] [&_small]:font-semibold [&_small]:[color:#9aa3af] [&_small]:[margin-top:2px]"
         >
           <span
             data-ui="brand-mark"
             className="[width:37px] [height:37px] [border-radius:11px] [background:var(--accent)] [color:white] grid place-items-center [box-shadow:0_5px_12px_#079a7c15] [@media(width<=1000px)]:[width:32px] [@media(width<=1000px)]:[height:32px]"
           >
-            <ChartNoAxesCombined size={23} />
+            <span dir="ltr" className="text-xs font-extrabold tracking-tight">PCE</span>
           </span>
           <span>
-            مارکت‌بات<small>MARKETBOT</small>
+            پارس کریپتو اکسچنج<small>PCE</small>
           </span>
         </Link>
         <button
@@ -343,7 +343,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
             data-ui="footer"
             className="flex items-center justify-between [padding-top:26px] [padding-right:2px] [padding-bottom:26px] [padding-left:2px] [font-size:var(--text-xs)] [color:#66758a] [gap:15px] [@media(width<=640px)]:[padding-top:23px] [@media(width<=640px)]:[padding-bottom:23px] [@media(width<=640px)]:[gap:9px] [@media(width<=640px)]:flex-wrap [&_>_span:last-child]:flex [&_>_span:last-child]:items-center [&_>_span:last-child]:[gap:5px] [@media(width<=640px)]:[&_svg]:[width:11px] [@media(width<=640px)]:[&_svg]:[height:11px]"
           >
-            <span>مارکت‌بات · فضای معاملات شما</span>
+            <span>پارس کریپتو اکسچنج · فضای معاملات شما</span>
             <span>
               <ShieldCheck size={13} /> تأیید پیامکی برای عملیات مالی
             </span>
