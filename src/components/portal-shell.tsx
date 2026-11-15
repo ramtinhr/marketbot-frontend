@@ -2,6 +2,7 @@
 import { ui } from '@/lib/ui-styles';
 
 import Link from 'next/link';
+import { HeaderSearch } from './header-search';
 import { NavigationLink } from './navigation-link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
@@ -14,7 +15,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Search,
   Settings2,
   ShieldCheck,
   Wallet,
@@ -66,7 +66,6 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const [mobile, setMobile] = useState(false);
   const [logout, setLogout] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [search, setSearch] = useState('');
   const sidebar = useRef<HTMLElement>(null);
   const session = useSession();
   const orders = useOrders();
@@ -117,7 +116,8 @@ export function PortalShell({ children }: { children: ReactNode }) {
     );
   if (!session.data.verified) return null;
   const user = session.data.user;
-  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'کاربر پارس کریپتو اکسچنج';
+  const name =
+    [user.first_name, user.last_name].filter(Boolean).join(' ') || 'کاربر پارس کریپتو اکسچنج';
   const title = links.find((link) => isCurrentPage(pathname, link.href))?.label ?? 'پنل کاربری';
   return (
     <div data-ui="portal" className="[min-height:100vh] [overflow-x:clip]">
@@ -153,7 +153,9 @@ export function PortalShell({ children }: { children: ReactNode }) {
             data-ui="brand-mark"
             className="[width:37px] [height:37px] [border-radius:11px] [background:var(--accent)] [color:white] grid place-items-center [box-shadow:0_5px_12px_#079a7c15] [@media(width<=1000px)]:[width:32px] [@media(width<=1000px)]:[height:32px]"
           >
-            <span dir="ltr" className="text-xs font-extrabold tracking-tight">PCE</span>
+            <span dir="ltr" className="text-xs font-extrabold tracking-tight">
+              PCE
+            </span>
           </span>
           <span>
             پارس کریپتو اکسچنج<small>PCE</small>
@@ -253,11 +255,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
       >
         <header
           data-ui="topbar"
-          className="[height:78px] [background:#fff] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:#edf0f3] flex items-center justify-between [padding-top:0] [padding-right:34px] [padding-bottom:0] [padding-left:34px] [gap:24px] [@media(width<=800px)]:[height:67px] [@media(width<=640px)]:[padding-right:16px] [@media(width<=640px)]:[padding-left:16px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-right:20px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-left:20px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-right:24px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-left:24px] [@media(width>1650px)]:[padding-right:44px] [@media(width>1650px)]:[padding-left:44px]"
+          className="[height:78px] [@media(width<=640px)]:flex-wrap [@media(width<=640px)]:[height:auto] [@media(width<=640px)]:[padding-top:10px] [@media(width<=640px)]:[padding-bottom:12px] [@media(width<=640px)]:[row-gap:8px] [background:#fff] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:#edf0f3] flex items-center justify-between [padding-top:0] [padding-right:34px] [padding-bottom:0] [padding-left:34px] [gap:24px] [@media(640px<width<=800px)]:[height:67px] [@media(width<=640px)]:[padding-right:16px] [@media(width<=640px)]:[padding-left:16px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-right:20px] [@media(width>640px)]:[@media(width<=1000px)]:[padding-left:20px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-right:24px] [@media(width>1000px)]:[@media(width<=1250px)]:[padding-left:24px] [@media(width>1650px)]:[padding-right:44px] [@media(width>1650px)]:[padding-left:44px]"
         >
           <div
             data-ui="breadcrumb"
-            className="flex items-center [gap:14px] [font-size:var(--text-sm)] [color:#66758a] [@media(width<=800px)]:[gap:11px] [&_strong]:font-medium [&_strong]:[color:#566273]"
+            className="flex shrink-0 items-center [gap:14px] [font-size:var(--text-sm)] [color:#66758a] [@media(width<=800px)]:[gap:11px] [&_strong]:font-medium [&_strong]:[color:#566273]"
           >
             <button
               data-ui="icon-button mobile-menu"
@@ -273,28 +275,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
             </span>
             <strong>{title}</strong>
           </div>
+          <HeaderSearch />
           <div
             data-ui="topbar-actions"
-            className="flex items-center [gap:17px] [@media(width<=640px)]:[gap:10px] [@media(width>640px)]:[@media(width<=1000px)]:[gap:11px] [@media(width<=640px)]:[&_>_[data-ui~='icon-button']]:hidden"
+            className="flex shrink-0 items-center [gap:17px] [@media(width<=640px)]:[gap:10px] [@media(width>640px)]:[@media(width<=1000px)]:[gap:11px] [@media(width<=640px)]:[&_>_[data-ui~='icon-button']]:hidden"
           >
-            <form
-              data-ui="global-search"
-              className="flex items-center [gap:9px] [color:#a2acb8] [@media(width<=640px)]:hidden [&_input]:[width:180px] [&_input]:[border-top-width:0] [&_input]:[border-top-style:none] [&_input]:[border-top-color:currentColor] [&_input]:[border-right-width:0] [&_input]:[border-right-style:none] [&_input]:[border-right-color:currentColor] [&_input]:[border-bottom-width:0] [&_input]:[border-bottom-style:none] [&_input]:[border-bottom-color:currentColor] [&_input]:[border-left-width:0] [&_input]:[border-left-style:none] [&_input]:[border-left-color:currentColor] [&_input]:[background:none] [&_input]:[font-size:var(--text-sm)] [&_input]:[padding-top:8px] [&_input]:[padding-right:0] [&_input]:[padding-bottom:8px] [&_input]:[padding-left:0] [&_input::placeholder]:[color:#66758a] [&_kbd]:[background:#f7f8fa] [&_kbd]:[border-top-width:1px] [&_kbd]:[border-top-style:solid] [&_kbd]:[border-top-color:#edf0f3] [&_kbd]:[border-right-width:1px] [&_kbd]:[border-right-style:solid] [&_kbd]:[border-right-color:#edf0f3] [&_kbd]:[border-bottom-width:1px] [&_kbd]:[border-bottom-style:solid] [&_kbd]:[border-bottom-color:#edf0f3] [&_kbd]:[border-left-width:1px] [&_kbd]:[border-left-style:solid] [&_kbd]:[border-left-color:#edf0f3] [&_kbd]:[padding-top:1px] [&_kbd]:[padding-right:5px] [&_kbd]:[padding-bottom:1px] [&_kbd]:[padding-left:5px] [&_kbd]:[border-radius:4px] [&_kbd]:[font-size:var(--text-xs)] [@media(width<=1000px)]:[&_input]:[width:135px] [@media(width<=640px)]:[&_input]:[font-size:var(--text-base)]"
-              role="search"
-              onSubmit={(e) => {
-                e.preventDefault();
-                router.push(`/markets?q=${encodeURIComponent(search)}`);
-              }}
-            >
-              <Search size={17} />
-              <input
-                aria-label="جست‌وجوی بازار"
-                placeholder="جست‌وجوی ارز یا بازار…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <kbd>↵</kbd>
-            </form>
             <span
               data-ui="topbar-divider"
               className="[height:20px] [border-left-width:1px] [border-left-style:solid] [border-left-color:#e9edf2] [@media(width<=640px)]:hidden"

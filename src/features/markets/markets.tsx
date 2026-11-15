@@ -3,7 +3,7 @@ import { Select, SelectOption } from '@/components/select';
 import { ui } from '@/lib/ui-styles';
 
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Star, Activity } from 'lucide-react';
 import { useSymbols, useMarket } from '@/lib/use-data';
 import { AssetIcon, Change, Money, PageHeading, Panel, State } from '@/components/ui';
@@ -32,6 +32,8 @@ function MarketCard({ symbol }: { symbol: string }) {
 export function Markets() {
   const params = useSearchParams();
   const [search, setSearch] = useState(params.get('q') ?? '');
+  const query = params.get('q') ?? '';
+  useEffect(() => setSearch(query), [query]);
   const [tab, setTab] = useState('all');
   const [sort, setSort] = useState('default');
   const symbols = useSymbols();
