@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# Use BuildKit's bundled frontend to avoid a separate Docker Hub frontend pull.
 FROM node:24-alpine AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
