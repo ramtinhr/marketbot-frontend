@@ -177,7 +177,11 @@ env files are excluded. Runtime secrets are uploaded separately, outside the
 Docker build context. No server-side `git pull` or repository key is needed.
 
 The host needs Docker with BuildKit, Compose v2, Bash, tar/gzip, enough CPU/RAM
-and disk for a Next.js build, and access to Docker Hub and the npm registry.
+and disk for a Next.js build, and access to ArvanCloud's Docker mirror and the npm registry.
+All Dockerfile stages use `docker.arvancloud.ir/library/node:24-alpine` by default,
+so source deployments do not pull base images directly from Docker Hub.
+For a manual build with another reachable mirror, pass
+`docker build --build-arg NODE_IMAGE=<mirror>/library/node:24-alpine -t marketbot-frontend .`.
 The first build downloads the base image and dependencies. Later builds reuse
 Docker layers, the npm download cache, and the Next.js build cache. Keep Docker's
 build cache between releases; pruning it makes the next build cold. Source

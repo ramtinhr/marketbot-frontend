@@ -1,17 +1,19 @@
 # Use BuildKit's bundled frontend to avoid a separate Docker Hub frontend pull.
-FROM node:24-alpine AS dependencies
+# Override NODE_IMAGE at build time if a different reachable mirror is needed.
+ARG NODE_IMAGE=docker.arvancloud.ir/library/node:24-alpine
+FROM ${NODE_IMAGE} AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
-FROM node:24-alpine AS build
+FROM ${NODE_IMAGE} AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN --mount=type=cache,target=/app/.next/cache npm run build
 
-FROM node:24-alpine AS runtime
+FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3001 HOSTNAME=0.0.0.0
 RUN addgroup -S app && adduser -S app -G app
