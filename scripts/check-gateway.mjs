@@ -41,6 +41,15 @@ const mock = http.createServer(async (req, res) => {
   receivedAuthorization = req.headers.authorization;
   receivedKey = req.headers['idempotency-key'];
   receivedIp = req.headers['x-forwarded-for'];
+  if (req.url === '/v1/me' && req.headers.authorization === 'Bearer expired-session') {
+    res.writeHead(401);
+    res.end(JSON.stringify({ code: 'unauthorized' }));
+    return;
+  }
+  if (req.url === '/v1/me' && req.headers.authorization === 'Bearer unverified-session') {
+    res.end(JSON.stringify({ user: { id: 1 }, verified: false }));
+    return;
+  }
   if (req.url === '/v1/auth/logout') {
     if (!body && req.headers['content-type'] === 'application/json') {
       res.writeHead(400);
@@ -101,6 +110,38 @@ try {
     await setTimeout(200);
   }
   assert.ok(ready, output);
+  for (const [query, destination] of [
+    ['', '/dashboard'],
+    ['?next=%2Fwallet%3Faction%3Ddeposit', '/wallet?action=deposit'],
+    ['?next=%2Flogin', '/dashboard'],
+    ['?next=https%3A%2F%2Fevil.example', '/dashboard'],
+  ]) {
+    const login = await fetch(origin + '/login' + query, {
+      headers: { Cookie: `marketbot_customer_session=${token}` },
+      redirect: 'manual',
+    });
+    assert.equal(login.status, 307);
+    assert.equal(
+      new URL(login.headers.get('location'), origin).pathname +
+        new URL(login.headers.get('location'), origin).search,
+      destination,
+    );
+    assert.match(login.headers.get('cache-control'), /no-store/);
+    assert.equal(receivedAuthorization, `Bearer ${token}`);
+  }
+  for (const sessionToken of ['', 'expired-session', 'unverified-session']) {
+    const login = await fetch(origin + '/login', {
+      headers: sessionToken ? { Cookie: `marketbot_customer_session=${sessionToken}` } : {},
+      redirect: 'manual',
+    });
+    assert.equal(login.status, 200);
+    assert.match(await login.text(), /data-ui="login-layout"/);
+    if (sessionToken === 'expired-session')
+      assert.match(
+        login.headers.get('set-cookie'),
+        /marketbot_customer_session=;.*(?:Max-Age=0|Expires=Thu, 01 Jan 1970)/i,
+      );
+  }
   const forwardedHome = await fetch(origin + '/', {
     headers: { 'X-Forwarded-Proto': 'https' },
     redirect: 'manual',

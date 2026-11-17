@@ -24,6 +24,7 @@ export function Login() {
   const params = useSearchParams();
   const client = useQueryClient();
   const { demo } = useApp();
+  const destination = safeNext(params.get('next'));
   const [phone, setPhone] = useState('');
   const [challenge, setChallenge] = useState('');
   const [code, setCode] = useState('');
@@ -76,7 +77,7 @@ export function Login() {
         body: { challenge_id: challenge, code: completedCode },
       });
       await client.invalidateQueries({ queryKey: ['session'] });
-      router.replace(safeNext(params.get('next')));
+      router.replace(destination);
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -107,7 +108,9 @@ export function Login() {
             data-ui="brand-mark"
             className="[width:37px] [height:37px] [border-radius:11px] [background:var(--accent)] [color:white] grid place-items-center [box-shadow:0_5px_12px_#079a7c15] [@media(width<=1000px)]:[width:32px] [@media(width<=1000px)]:[height:32px]"
           >
-            <span dir="ltr" className="text-xs font-extrabold tracking-tight">PCE</span>
+            <span dir="ltr" className="text-xs font-extrabold tracking-tight">
+              PCE
+            </span>
           </span>
           <span>
             پارس کریپتو اکسچنج<small>PCE</small>

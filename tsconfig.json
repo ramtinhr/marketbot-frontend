@@ -30,7 +30,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next-gateway-test/types/**/*.ts",
-    ".next-gateway-test/dev/types/**/*.ts"
+    ".next-gateway-test/dev/types/**/*.ts",
+    ".next-browser-qa/types/**/*.ts",
+    ".next-browser-qa/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".qa"]
 }

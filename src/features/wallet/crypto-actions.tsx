@@ -2,7 +2,7 @@
 import { walletAddressError } from '@/lib/wallet-address';
 import { Select, SelectOption } from '@/components/select';
 import { useRef, useState, type FormEvent } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Copy, CheckCircle2 } from 'lucide-react';
 import { parseDecimal, formatAmountInput } from '@/lib/numbers';
 import { api } from '@/lib/api';
@@ -123,7 +123,20 @@ function CryptoForm({
   const session = useSession(),
     wallet = useWallet(),
     client = useQueryClient();
-  const [address, setAddress] = useState<DepositAddress | null>(null);
+  // Keep assigned addresses across dialog remounts, isolated by customer and network.
+  // Allocation stays explicit; logout clears this session-only query cache.
+  const { data: address, refetch: requestAddress } = useQuery<DepositAddress>({
+    queryKey: ['crypto-deposit-address', session.data?.user.id, asset.asset, asset.network],
+    queryFn: () =>
+      api<DepositAddress>('/crypto/deposit-address', {
+        method: 'POST',
+        body: { asset: asset.asset, network: asset.network },
+      }),
+    enabled: false,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
+  });
   const [tx, setTx] = useState(''),
     [amount, setAmount] = useState(''),
     [destination, setDestination] = useState(''),
@@ -292,12 +305,7 @@ function CryptoForm({
               disabled={!enabled || busy || !session.data}
               onClick={() =>
                 void perform(async () => {
-                  setAddress(
-                    await api<DepositAddress>('/crypto/deposit-address', {
-                      method: 'POST',
-                      body: { asset: asset.asset, network: asset.network },
-                    }),
-                  );
+                  await requestAddress({ throwOnError: true });
                 })
               }
             >

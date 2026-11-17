@@ -28,7 +28,7 @@ test('customer gateway allows documented operations and excludes admin and arbit
 test('post-login redirect remains on this application', () => {
   assert.equal(safeNext('/wallet?action=deposit'), '/wallet?action=deposit');
   for (const url of ['https://evil.example', '//evil.example', '/\\evil.example', null])
-    assert.equal(safeNext(url), '/');
+    assert.equal(safeNext(url), '/dashboard');
 });
 test('Iranian IBAN validation checks the country, length, and checksum', () => {
   assert.equal(validIban('IR820540102680020817909002'), true);

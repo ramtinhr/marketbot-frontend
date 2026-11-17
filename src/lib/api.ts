@@ -73,6 +73,7 @@ const messages: Record<string, string> = {
   own_offer: 'امکان معامله با آگهی خودتان وجود ندارد.',
   invalid_order: 'اطلاعات سفارش معتبر نیست.',
   otp_invalid: 'کد تأیید باید ۶ رقم باشد.',
+  otp_intent_mismatch: 'جزئیات برداشت تغییر کرده است. برای همین مبلغ و مقصد، کد جدید بگیرید.',
   amount_out_of_range: 'مبلغ خارج از محدودهٔ مجاز است.',
   wallet_inactive: 'کیف پول این دارایی غیرفعال است.',
   otp_required: 'برای ادامه تأیید پیامکی لازم است.',

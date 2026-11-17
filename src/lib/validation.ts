@@ -11,5 +11,16 @@ export function validIban(value: string): boolean {
   return remainder === 1;
 }
 export function safeNext(value: string | null): string {
-  return value?.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : '/';
+  if (!value?.startsWith('/') || value.startsWith('//') || /[\\\u0000-\u0020]/.test(value))
+    return '/dashboard';
+  try {
+    const target = new URL(value, 'https://portal.example');
+    const pathname = decodeURIComponent(target.pathname);
+    // Never redirect back into login or to an external URL after normalization.
+    if (pathname.startsWith('//') || pathname.includes('\\') || /^\/login(?:\/|$)/.test(pathname))
+      return '/dashboard';
+    return target.pathname + target.search + target.hash;
+  } catch {
+    return '/dashboard';
+  }
 }

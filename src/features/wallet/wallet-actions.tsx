@@ -48,6 +48,7 @@ function FiatWalletActions({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [resendAt, setResendAt] = useState(0);
+  const [sentIntent, setSentIntent] = useState('');
   const [now, setNow] = useState(0);
   const charge = useResource<PaymentConfig>(
     'charge-info',
@@ -73,12 +74,23 @@ function FiatWalletActions({
   const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
   const balance = wallet.data?.balances.find((b) => b.asset === asset)?.available ?? '0';
   const networks = withdrawals.data?.networks[asset] ?? [];
+  const withdrawalIntent = () => ({
+    asset,
+    amount: parseDecimal(amount, asset === 'IRT' ? 0 : 8),
+    network: asset === 'IRT' ? null : network || networks[0],
+    ...(asset === 'IRT' && bank !== 'other'
+      ? { recipient_type: 'saved', bank_account_id: bank }
+      : { destination: asset === 'IRT' ? destination : destination.trim(),
+          ...(asset === 'IRT' ? { recipient_type: 'other', beneficiary_name: beneficiary } : {}) }),
+  });
   const sendCode = async () => {
     setBusy(true);
     setError('');
     try {
       if (demo) throw new Error('demo');
-      const res = await api<{ resend_in: number }>('/wallet/withdrawals/otp', { method: 'POST' });
+      const intent = withdrawalIntent();
+      const res = await api<{ resend_in: number }>('/wallet/withdrawals/otp', { method: 'POST', body: intent });
+      setSentIntent(JSON.stringify(intent));
       setCode('');
       setNow(Date.now());
       setResendAt(Date.now() + res.resend_in * 1000);
@@ -167,7 +179,7 @@ function FiatWalletActions({
       }
     }
     if (step === 1) {
-      if (resendAt > Date.now()) setStep(2);
+      if (resendAt > Date.now() && sentIntent === JSON.stringify(withdrawalIntent())) setStep(2);
       else await sendCode();
       return;
     }
