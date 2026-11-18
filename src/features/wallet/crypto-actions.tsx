@@ -4,6 +4,7 @@ import { Select, SelectOption } from '@/components/select';
 import { useRef, useState, type FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Copy, CheckCircle2 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { parseDecimal, formatAmountInput } from '@/lib/numbers';
 import { api } from '@/lib/api';
 import {
@@ -318,6 +319,22 @@ function CryptoForm({
                 className="grid [gap:10px] [padding-top:16px] [padding-right:16px] [padding-bottom:16px] [padding-left:16px] [border-top-width:1px] [border-top-style:solid] [border-top-color:var(--line)] [border-right-width:1px] [border-right-style:solid] [border-right-color:var(--line)] [border-bottom-width:1px] [border-bottom-style:solid] [border-bottom-color:var(--line)] [border-left-width:1px] [border-left-style:solid] [border-left-color:var(--line)] [border-radius:10px] [background:#f6f9f8] [&_>_span]:[font-size:var(--text-sm)] [&_>_span]:font-semibold [&_bdi]:[overflow-wrap:anywhere] [&_bdi]:[word-break:break-word] [&_bdi]:[font-family:monospace] [&_bdi]:[direction:ltr] [&_bdi]:[unicode-bidi:isolate] [&_bdi]:[user-select:all] [&_bdi]:[font-size:var(--text-sm)]"
               >
                 <span>آدرس واریز شما · {networkNames[asset.network]}</span>
+                <figure className="flex min-w-0 flex-col items-center gap-2 text-center">
+                  <QRCodeSVG
+                    value={address.address}
+                    size={224}
+                    level="M"
+                    marginSize={4}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    title={`آدرس واریز ${asset.asset} · ${networkNames[asset.network] ?? asset.network}`}
+                    role="img"
+                    className="h-auto max-w-full rounded-lg"
+                  />
+                  <figcaption className="text-xs text-[var(--muted)]">
+                    برای دریافت آدرس، کد را با کیف پول خود اسکن کنید.
+                  </figcaption>
+                </figure>
                 <bdi>{address.address}</bdi>
                 <button
                   type="button"
@@ -327,6 +344,22 @@ function CryptoForm({
                 >
                   <Copy size={15} /> کپی آدرس
                 </button>
+                {address.destination_tag != null && address.destination_tag !== '' && (
+                  <div className="grid gap-2 border-t border-[var(--line)] pt-3">
+                    <span className="text-sm font-semibold">تگ / ممو واریز</span>
+                    <bdi>{address.destination_tag}</bdi>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-[var(--accent)]"
+                      onClick={() => void copy(address.destination_tag!)}
+                    >
+                      <Copy size={15} /> کپی تگ / ممو
+                    </button>
+                    <p className="text-xs">
+                      این تگ / ممو را حتماً در کیف پول فرستنده وارد کنید؛ کد QR فقط شامل آدرس است.
+                    </p>
+                  </div>
+                )}
               </div>
               <Field
                 label="شناسهٔ تراکنش (TX ID)"
